@@ -861,9 +861,9 @@ function BudgetTracker() {
           <Icon d={Icons.search} size={16} color="#666" style={{ position: "absolute", left: 12, top: 14 }} />
         </div>
         <select style={{ ...S.select, width: 90 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
-          <option value="all">전체</option>
-          <option value="income">수입</option>
-          <option value="expense">지출</option>
+          <option value="all" style={{ color: "#000" }}>전체</option>
+          <option value="income" style={{ color: "#000" }}>수입</option>
+          <option value="expense" style={{ color: "#000" }}>지출</option>
         </select>
       </div>
       {/* [NEW] 금액 범위 필터 */}
@@ -1099,8 +1099,8 @@ function BudgetTracker() {
         </Field>
         <Field label="카테고리">
           <select style={S.select} value={fCat} onChange={e => setFCat(e.target.value)}>
-            <option value="">선택</option>
-            {cats.map(c => <option key={c} value={c}>{c}</option>)}
+            <option value="" style={{ color: "#000" }}>선택</option>
+            {cats.map(c => <option key={c} value={c} style={{ color: "#000" }}>{c}</option>)}
           </select>
         </Field>
         <Field label="날짜">
@@ -1128,13 +1128,13 @@ function BudgetTracker() {
         </Field>
         <Field label="카테고리">
           <select style={S.select} value={rCat} onChange={e => setRCat(e.target.value)}>
-            <option value="">선택</option>
-            {rCats.map(c => <option key={c} value={c}>{c}</option>)}
+            <option value="" style={{ color: "#000" }}>선택</option>
+            {rCats.map(c => <option key={c} value={c} style={{ color: "#000" }}>{c}</option>)}
           </select>
         </Field>
         <Field label="매월 결제일">
           <select style={S.select} value={rDay} onChange={e => setRDay(e.target.value)}>
-            {Array.from({ length: 28 }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1}일</option>)}
+            {Array.from({ length: 31 }, (_, i) => <option key={i + 1} value={i + 1} style={{ color: "#000" }}>{i + 1}일</option>)}
           </select>
         </Field>
         <Field label="메모">
@@ -1172,8 +1172,8 @@ function BudgetTracker() {
       <Modal open={showBudgetModal} onClose={() => setShowBudgetModal(false)} title={`예산 설정 (${month})`}>
         <Field label="카테고리">
           <select style={S.select} value={budgetCat} onChange={e => setBudgetCat(e.target.value)}>
-            <option value="">선택</option>
-            {expCats.map(c => <option key={c} value={c}>{c}</option>)}
+            <option value="" style={{ color: "#000" }}>선택</option>
+            {expCats.map(c => <option key={c} value={c} style={{ color: "#000" }}>{c}</option>)}
           </select>
         </Field>
         <Field label="예산 금액">
