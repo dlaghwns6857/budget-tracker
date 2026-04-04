@@ -748,9 +748,8 @@ function BudgetTracker() {
       remainingDays = 0; // 지난 달인 경우 남은 일수 0
     }
     
-    // [NEW] 고정비 제외, 순수 변동비 지출만 예산에서 차감
-    const variableExpense = monthTxs.filter(t => t.type === "expense" && !t.isRecurring).reduce((s, t) => s + t.amount, 0);
-    const remainingBudget = Math.max(0, totalBudget - variableExpense);
+    // 예산에서 전체 지출(고정비+변동비) 차감
+    const remainingBudget = Math.max(0, totalBudget - summary.expense);
     const dailyBudget = remainingDays > 0 ? Math.floor(remainingBudget / remainingDays) : 0;
 
     return (
@@ -778,10 +777,10 @@ function BudgetTracker() {
         {totalBudget > 0 && (
           <div style={S.card}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={S.cardTitle}>이달 예산 (순수 변동비 기준)</span>
+              <span style={S.cardTitle}>이달 예산</span>
               <button onClick={() => setShowBudgetModal(true)} style={S.btnSm()}>설정</button>
             </div>
-        <BudgetBar spent={variableExpense} budget={totalBudget} />
+            <BudgetBar spent={summary.expense} budget={totalBudget} />
             <div style={{ fontSize: 13, color: "#888", marginTop: 8 }}>
               잔여 예산: <span style={{ color: remainingBudget >= 0 ? "#2ECC71" : "#FF6B6B", fontWeight: 600 }}>
                 {formatNum(remainingBudget)}원
