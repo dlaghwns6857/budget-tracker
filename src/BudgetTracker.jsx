@@ -390,69 +390,7 @@ function Toast({ toast, onHide }) {
 }
 
 // ─── Main App ────────────────────────────────────────────────────────
-// ─── Password Lock ──────────────────────────────────────────────
-const PASS_HASH = "647e1248"; // 해시된 비밀번호
-
-function simpleHash(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
-  }
-  return (h >>> 0).toString(16);
-}
-
-function LockScreen({ onUnlock }) {
-  const [pw, setPw] = useState("");
-  const [error, setError] = useState(false);
-  const [shake, setShake] = useState(false);
-
-  const submit = () => {
-    if (simpleHash(pw) === PASS_HASH) {
-      sessionStorage.setItem("budget-unlocked", "1");
-      onUnlock();
-    } else {
-      setError(true);
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-      setPw("");
-    }
-  };
-
-  return (
-    <div style={{ fontFamily: "'Apple SD Gothic Neo', -apple-system, sans-serif", background: "#0A0A0F", color: "#E8E6E3", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ textAlign: "center", padding: 40, animation: shake ? "shake .5s" : "none" }}>
-        <style>{`@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }`}</style>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
-        <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, background: "linear-gradient(135deg, #6C9CFF, #B47AFF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>가계부</div>
-        <div style={{ color: "#666", fontSize: 13, marginBottom: 32 }}>비밀번호를 입력해주세요</div>
-        <input
-          type="password"
-          value={pw}
-          onChange={e => { setPw(e.target.value); setError(false); }}
-          onKeyDown={e => e.key === "Enter" && submit()}
-          placeholder="비밀번호"
-          autoFocus
-          style={{ width: 240, padding: "14px 16px", background: "rgba(255,255,255,0.06)", border: error ? "1px solid #FF6B6B" : "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#E8E6E3", fontSize: 16, outline: "none", textAlign: "center", letterSpacing: 4 }}
-        />
-        {error && <div style={{ color: "#FF6B6B", fontSize: 13, marginTop: 8 }}>비밀번호가 틀렸어요</div>}
-        <button onClick={submit}
-          style={{ display: "block", width: 240, margin: "16px auto 0", padding: "14px 0", background: "#6C9CFF", color: "#fff", border: "none", borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: "pointer" }}>
-          확인
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function AppWithLock() {
-  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("budget-unlocked") === "1");
-  if (!unlocked) return <LockScreen onUnlock={() => setUnlocked(true)} />;
-  return <BudgetTracker />;
-}
-
-export { AppWithLock as default };
-
-function BudgetTracker() {
+export default function BudgetTracker() {
   const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState("home");
   const [month, setMonth] = useState(getYM(today()));
