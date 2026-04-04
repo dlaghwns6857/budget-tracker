@@ -1079,6 +1079,23 @@ function BudgetTracker() {
         ))}
       </nav>
 
+      {/* [NEW] 위플 가계부 스타일 플로팅 추가 버튼 (FAB) */}
+      {(tab === "home" || tab === "list") && (
+        <div style={{ position: "fixed", bottom: 90, width: "100%", maxWidth: 520, left: "50%", transform: "translateX(-50%)", pointerEvents: "none", zIndex: 90 }}>
+          <button
+            onClick={() => openAddTx(tab === "home" && selectedDate ? selectedDate : today())}
+            style={{
+              pointerEvents: "auto", position: "absolute", right: 20, width: 56, height: 56,
+              background: "#6C9CFF", borderRadius: 18, border: "none", color: "#fff",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 6px 20px rgba(108,156,255,0.4)", cursor: "pointer", transition: "transform 0.2s"
+            }}
+          >
+            <Icon d={Icons.plus} size={28} />
+          </button>
+        </div>
+      )}
+
       {/* [NEW] Toast */}
       <Toast toast={toast} onHide={hideToast} />
 
