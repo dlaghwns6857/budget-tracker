@@ -16,10 +16,16 @@ const CATEGORY_COLORS = {
   "통신": "#96CEB4", "구독서비스": "#DDA0DD", "의료/건강": "#98D8C8",
   "쇼핑/뷰티": "#F7DC6F", "문화/여가": "#BB8FCE",
   "교육": "#85C1E9", "보험/세금": "#82E0AA", "경조사/선물": "#F1948A",
-  "반려동물": "#D2B48C", "생활용품": "#AAB7B8", "기타": "#AEB6BF",
+  "반려동물": "#D2B48C", "생활용품": "#FFB347", "기타": "#7F8CFF",
   "월급": "#2ECC71", "부수입": "#27AE60", "용돈": "#1ABC9C",
-  "상여금": "#F39C12", "금융소득": "#3498DB", "중고거래": "#9B59B6", "기타수입": "#95A5A6"
+  "상여금": "#F39C12", "금융소득": "#3498DB", "중고거래": "#9B59B6", "기타수입": "#FF8C42"
 };
+
+const CATEGORY_COLOR_PALETTE = [
+  "#FF6B6B", "#4ECDC4", "#45B7D1", "#F7B267", "#7F8CFF", "#2ECC71",
+  "#B47AFF", "#FF8C42", "#FF5D8F", "#00C2A8", "#FFD166", "#5E60CE",
+  "#2A9D8F", "#E76F51", "#6C9CFF", "#F28482", "#84A59D", "#F6BD60"
+];
 
 const STORAGE_KEYS = {
   transactions: "transactions",
@@ -52,6 +58,23 @@ const parseLocalDate = (dateStr) => new Date(dateStr + "T00:00:00");
 
 // [BUG FIX] CSV 필드 이스케이프 (쉼표/따옴표 포함된 메모 깨짐 방지)
 const csvEscape = (v) => `"${String(v).replace(/"/g, '""')}"`;
+
+const getCategoryColor = (name, colors = {}) => {
+  if (colors[name]) return colors[name];
+  if (CATEGORY_COLORS[name]) return CATEGORY_COLORS[name];
+  const hash = Array.from(name).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return CATEGORY_COLOR_PALETTE[hash % CATEGORY_COLOR_PALETTE.length];
+};
+
+const buildCategoryColorMap = (categories, existingColors = {}) => {
+  const nextColors = { ...existingColors };
+  categories.forEach((name) => {
+    if (!nextColors[name]) {
+      nextColors[name] = getCategoryColor(name, nextColors);
+    }
+  });
+  return nextColors;
+};
 
 // ─── Storage Helper (Supabase) ──────────────────────────────────
 import { load, save } from './db.js';
@@ -124,7 +147,7 @@ function MonthPicker({ value, onChange }) {
 
 // ── Category Chip ──
 function CatChip({ name, colors }) {
-  const bg = (colors && colors[name]) || CATEGORY_COLORS[name] || "#555";
+  const bg = getCategoryColor(name, colors);
   return <span style={{ ...S.tag(bg + "33"), color: bg }}>{name}</span>;
 }
 
@@ -184,8 +207,8 @@ function DonutChart({ data }) {
         {data.slice(0, 6).map((d, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: d.color, flexShrink: 0 }} />
-            <span style={{ color: "#aaa" }}>{d.name}</span>
-            <span style={{ color: "#ccc", fontWeight: 600, marginLeft: "auto" }}>{Math.round(d.value / total * 100)}%</span>
+            <span style={{ color: d.color, fontWeight: 600 }}>{d.name}</span>
+            <span style={{ color: "#E8E6E3", fontWeight: 600, marginLeft: "auto" }}>{Math.round(d.value / total * 100)}%</span>
           </div>
         ))}
       </div>
@@ -456,10 +479,19 @@ export default function BudgetTracker() {
       setExpCats(ecs && ecs.length > 0 ? ecs : DEFAULT_EXPENSE_CATEGORIES);
       setIncCats(ics && ics.length > 0 ? ics : DEFAULT_INCOME_CATEGORIES);
       setBudgets(buds);
-      setCatColors(cols);
+      setCatColors(buildCategoryColorMap([...(ecs && ecs.length > 0 ? ecs : DEFAULT_EXPENSE_CATEGORIES), ...(ics && ics.length > 0 ? ics : DEFAULT_INCOME_CATEGORIES)], cols));
       setLoaded(true);
     })();
   }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const allCategories = [...new Set([...expCats, ...incCats, ...transactions.map((tx) => tx.category).filter(Boolean)])];
+    const nextColors = buildCategoryColorMap(allCategories, catColors);
+    if (JSON.stringify(nextColors) !== JSON.stringify(catColors)) {
+      saveColors(nextColors);
+    }
+  }, [loaded, expCats, incCats, transactions, catColors, saveColors]);
 
   // ── [BUG FIX] Auto-apply recurring
   // functional setState 사용으로 stale closure 방지 (transactions를 deps에서 제거)
@@ -536,7 +568,7 @@ export default function BudgetTracker() {
   const expByCategory = useMemo(() => {
     const map = {};
     monthTxs.filter(t => t.type === "expense").forEach(t => { map[t.category] = (map[t.category] || 0) + t.amount; });
-    return Object.entries(map).map(([name, value]) => ({ name, value, color: catColors[name] || "#555" })).sort((a, b) => b.value - a.value);
+    return Object.entries(map).map(([name, value]) => ({ name, value, color: getCategoryColor(name, catColors) })).sort((a, b) => b.value - a.value);
   }, [monthTxs, catColors]);
 
   const monthBudget = budgets[month] || {};
