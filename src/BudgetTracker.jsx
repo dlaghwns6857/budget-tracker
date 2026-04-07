@@ -484,15 +484,6 @@ export default function BudgetTracker() {
     })();
   }, []);
 
-  useEffect(() => {
-    if (!loaded) return;
-    const allCategories = [...new Set([...expCats, ...incCats, ...transactions.map((tx) => tx.category).filter(Boolean)])];
-    const nextColors = buildCategoryColorMap(allCategories, catColors);
-    if (JSON.stringify(nextColors) !== JSON.stringify(catColors)) {
-      saveColors(nextColors);
-    }
-  }, [loaded, expCats, incCats, transactions, catColors, saveColors]);
-
   // ── [BUG FIX] Auto-apply recurring
   // functional setState 사용으로 stale closure 방지 (transactions를 deps에서 제거)
   useEffect(() => {
@@ -542,6 +533,15 @@ export default function BudgetTracker() {
     setBudgets(buds);
     save(STORAGE_KEYS.budgets, buds).catch((error) => console.error("Budget save error:", error));
   }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const allCategories = [...new Set([...expCats, ...incCats, ...transactions.map((tx) => tx.category).filter(Boolean)])];
+    const nextColors = buildCategoryColorMap(allCategories, catColors);
+    if (JSON.stringify(nextColors) !== JSON.stringify(catColors)) {
+      saveColors(nextColors);
+    }
+  }, [loaded, expCats, incCats, transactions, catColors, saveColors]);
 
   // ── Computed ──
   const monthTxs = useMemo(() =>
