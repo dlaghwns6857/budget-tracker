@@ -560,6 +560,7 @@ export default function BudgetTracker() {
       setFCat("");
       setFMemo("");
       setFAmount("");
+      // Delay focus slightly to allow React to finish re-rendering the cleared input
       setTimeout(() => amountInputRef.current && amountInputRef.current.focus(), 50);
     } finally {
       setSubmitting(false);
