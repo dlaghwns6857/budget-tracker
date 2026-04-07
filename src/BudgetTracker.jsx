@@ -549,10 +549,7 @@ export default function BudgetTracker() {
     const amt = parseInt(fAmount);
     if (!amt || amt <= 0 || !fCat) return;
     saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
-    const keptDate = fDate;
-    const keptType = fType;
     setFAmount(""); setFCat(""); setFMemo("");
-    setFDate(keptDate); setFType(keptType);
     setToast({ message: "저장되었어요. 계속 입력하세요!" });
     setTimeout(() => {
       const amtInput = document.querySelector("[data-tx-amount]");
