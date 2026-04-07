@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+dist-ssr/
+
+# Environment variables — NEVER commit real secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Supabase local dev
+supabase/.temp/
+supabase/functions/.env
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+*.swp
+*.swo
