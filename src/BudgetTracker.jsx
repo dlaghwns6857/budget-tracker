@@ -347,7 +347,7 @@ function Field({ label, children }) {
 }
 
 // ── [NEW] Amount Input - 자동 콤마 포맷 ──
-function AmountInput({ value, onChange, style }) {
+function AmountInput({ value, onChange, style, ...rest }) {
   const display = value ? parseInt(value).toLocaleString("ko-KR") : "";
   return (
     <input
@@ -357,6 +357,7 @@ function AmountInput({ value, onChange, style }) {
       placeholder="0"
       value={display}
       onChange={e => onChange(e.target.value.replace(/[^0-9]/g, ""))}
+      {...rest}
     />
   );
 }
@@ -541,6 +542,22 @@ export default function BudgetTracker() {
       saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
     }
     setShowTxModal(false);
+  };
+
+  // [NEW] 계속입력: 저장 후 모달 유지, 날짜 유지, 카테고리/금액/메모 초기화, 탭 유지
+  const submitTxAndContinue = () => {
+    const amt = parseInt(fAmount);
+    if (!amt || amt <= 0 || !fCat) return;
+    saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
+    const keptDate = fDate;
+    const keptType = fType;
+    setFAmount(""); setFCat(""); setFMemo("");
+    setFDate(keptDate); setFType(keptType);
+    setToast({ message: "저장되었어요. 계속 입력하세요!" });
+    setTimeout(() => {
+      const amtInput = document.querySelector("[data-tx-amount]");
+      if (amtInput) amtInput.focus();
+    }, 50);
   };
 
   // [NEW] 삭제 시 실행취소 토스트
@@ -1052,7 +1069,7 @@ export default function BudgetTracker() {
         </div>
         <Field label="금액">
           {/* [NEW] 자동 콤마 AmountInput */}
-          <AmountInput style={S.input} value={fAmount} onChange={setFAmount} />
+          <AmountInput style={S.input} value={fAmount} onChange={setFAmount} data-tx-amount />
         </Field>
         <Field label="카테고리">
           <select style={S.select} value={fCat} onChange={e => setFCat(e.target.value)}>
@@ -1066,7 +1083,16 @@ export default function BudgetTracker() {
         <Field label="메모">
           <input style={S.input} placeholder="메모 (선택)" value={fMemo} onChange={e => setFMemo(e.target.value)} />
         </Field>
-        <button onClick={submitTx} style={S.btn()}>{editTx ? "수정" : "추가"}</button>
+        {/* [NEW] 추가/계속입력 버튼 나란히 배치 (수정 모드에서는 단일 버튼) */}
+        {editTx ? (
+          <button onClick={submitTx} style={S.btn()}>수정</button>
+        ) : (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={submitTx} style={{ ...S.btn(), flex: 1 }}>추가</button>
+            <button onClick={submitTxAndContinue}
+              style={{ ...S.btn("rgba(180,122,255,0.85)"), flex: 1 }}>계속입력</button>
+          </div>
+        )}
       </Modal>
 
       {/* ── Recurring Modal ── */}
