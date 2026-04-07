@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 // ─── Constants ───────────────────────────────────────────────────────
 const DEFAULT_EXPENSE_CATEGORIES = [
@@ -347,10 +347,11 @@ function Field({ label, children }) {
 }
 
 // ── [NEW] Amount Input - 자동 콤마 포맷 ──
-function AmountInput({ value, onChange, style }) {
+const AmountInput = ({ value, onChange, style, inputRef }) => {
   const display = value ? parseInt(value).toLocaleString("ko-KR") : "";
   return (
     <input
+      ref={inputRef}
       style={style}
       type="text"
       inputMode="numeric"
@@ -359,7 +360,7 @@ function AmountInput({ value, onChange, style }) {
       onChange={e => onChange(e.target.value.replace(/[^0-9]/g, ""))}
     />
   );
-}
+};
 
 // ── [NEW] Toast - 실행취소 알림 ──
 function Toast({ toast, onHide }) {
@@ -419,6 +420,8 @@ export default function BudgetTracker() {
   const [fCat, setFCat] = useState("");
   const [fDate, setFDate] = useState(today());
   const [fMemo, setFMemo] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const amountInputRef = useRef(null);
   // Recurring form
   const [rType, setRType] = useState("expense");
   const [rAmount, setRAmount] = useState("");
@@ -531,16 +534,36 @@ export default function BudgetTracker() {
     setFType(tx.type); setFAmount(String(tx.amount)); setFCat(tx.category); setFDate(tx.date); setFMemo(tx.memo || "");
     setShowTxModal(true);
   };
-  const submitTx = () => {
+  const submitTx = async () => {
     const amt = parseInt(fAmount);
     // [BUG FIX] amt <= 0 체크 추가 (음수/0 입력 방지)
-    if (!amt || amt <= 0 || !fCat) return;
-    if (editTx) {
-      saveTx(transactions.map(t => t.id === editTx.id ? { ...t, type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo } : t));
-    } else {
-      saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
+    if (!amt || amt <= 0 || !fCat || submitting) return;
+    setSubmitting(true);
+    try {
+      if (editTx) {
+        await saveTx(transactions.map(t => t.id === editTx.id ? { ...t, type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo } : t));
+      } else {
+        await saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
+      }
+      setShowTxModal(false);
+    } finally {
+      setSubmitting(false);
     }
-    setShowTxModal(false);
+  };
+  const submitTxContinue = async () => {
+    const amt = parseInt(fAmount);
+    if (!amt || amt <= 0 || !fCat || submitting) return;
+    setSubmitting(true);
+    try {
+      await saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
+      // Keep modal open; preserve date and type; reset category, memo, amount
+      setFCat("");
+      setFMemo("");
+      setFAmount("");
+      setTimeout(() => amountInputRef.current && amountInputRef.current.focus(), 50);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // [NEW] 삭제 시 실행취소 토스트
@@ -1052,7 +1075,7 @@ export default function BudgetTracker() {
         </div>
         <Field label="금액">
           {/* [NEW] 자동 콤마 AmountInput */}
-          <AmountInput style={S.input} value={fAmount} onChange={setFAmount} />
+          <AmountInput style={S.input} value={fAmount} onChange={setFAmount} inputRef={amountInputRef} />
         </Field>
         <Field label="카테고리">
           <select style={S.select} value={fCat} onChange={e => setFCat(e.target.value)}>
@@ -1066,7 +1089,16 @@ export default function BudgetTracker() {
         <Field label="메모">
           <input style={S.input} placeholder="메모 (선택)" value={fMemo} onChange={e => setFMemo(e.target.value)} />
         </Field>
-        <button onClick={submitTx} style={S.btn()}>{editTx ? "수정" : "추가"}</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={submitTx} disabled={submitting} style={{ ...S.btn(), flex: 1, opacity: submitting ? 0.6 : 1 }}>
+            {editTx ? "수정" : "추가"}
+          </button>
+          {!editTx && (
+            <button onClick={submitTxContinue} disabled={submitting} style={{ ...S.btn("rgba(180,122,255,0.9)"), flex: 1, opacity: submitting ? 0.6 : 1 }}>
+              계속입력
+            </button>
+          )}
+        </div>
       </Modal>
 
       {/* ── Recurring Modal ── */}
