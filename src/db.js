@@ -1,31 +1,62 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  'https://agswuqrreubaodrawntn.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnc3d1cXJyZXViYW9kcmF3bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMDAxMDYsImV4cCI6MjA5MDg3NjEwNn0.WsjQ0K6In65yb_YMglHbcF1QHgsrqrD0EFSplip2CB4'
-)
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey)
+
+const supabase = hasSupabaseConfig
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
+
+function loadLocal(key, fallback) {
+  if (typeof window === 'undefined') return fallback
+
+  const raw = window.localStorage.getItem(key)
+  if (raw == null) return fallback
+
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return fallback
+  }
+}
+
+function saveLocal(key, value) {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(key, JSON.stringify(value))
+}
 
 export async function load(key, fallback) {
+  if (!hasSupabaseConfig) {
+    return loadLocal(key, fallback)
+  }
+
   try {
     const { data, error } = await supabase
       .from('budget_store')
       .select('value')
       .eq('key', key)
       .single()
+
     if (error || !data) return fallback
     return data.value
   } catch {
-    return fallback
+    return loadLocal(key, fallback)
   }
 }
 
 export async function save(key, val) {
-  try {
-    await supabase
-      .from('budget_store')
-      .upsert({ key, value: val, updated_at: new Date().toISOString() })
-  } catch (e) {
-    console.error('Save error:', e)
+  if (!hasSupabaseConfig) {
+    saveLocal(key, val)
+    return
+  }
+
+  const { error } = await supabase
+    .from('budget_store')
+    .upsert({ key, value: val, updated_at: new Date().toISOString() })
+
+  if (error) {
+    throw error
   }
 }
 

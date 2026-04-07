@@ -3,10 +3,15 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:env:client": "node ./scripts/validate-env.mjs client",
+    "check:env:github": "node ./scripts/validate-env.mjs github"
   },
   "dependencies": {
     "react": "^18.2.0",

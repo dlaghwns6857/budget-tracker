@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 // ─── Constants ───────────────────────────────────────────────────────
 const DEFAULT_EXPENSE_CATEGORIES = [
@@ -326,14 +326,14 @@ function Calendar({ month, transactions, onDateClick, selectedDate }) {
 }
 
 // ── Modal ──
-function Modal({ open, onClose, title, children }) {
+function Modal({ open, onClose, title, children, disableClose = false }) {
   if (!open) return null;
   return (
-    <div style={S.modalOverlay} onClick={onClose}>
+    <div style={S.modalOverlay} onClick={disableClose ? undefined : onClose}>
       <div style={S.modalContent} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <span style={{ fontSize: 19, fontWeight: 700 }}>{title}</span>
-          <button onClick={onClose} style={S.btnGhost}><Icon d={Icons.x} size={22} /></button>
+          <button onClick={onClose} style={S.btnGhost} disabled={disableClose}><Icon d={Icons.x} size={22} /></button>
         </div>
         {children}
       </div>
@@ -347,15 +347,17 @@ function Field({ label, children }) {
 }
 
 // ── [NEW] Amount Input - 자동 콤마 포맷 ──
-function AmountInput({ value, onChange, style }) {
+function AmountInput({ value, onChange, style, inputRef, disabled = false }) {
   const display = value ? parseInt(value).toLocaleString("ko-KR") : "";
   return (
     <input
+      ref={inputRef}
       style={style}
       type="text"
       inputMode="numeric"
       placeholder="0"
       value={display}
+      disabled={disabled}
       onChange={e => onChange(e.target.value.replace(/[^0-9]/g, ""))}
     />
   );
@@ -434,6 +436,8 @@ export default function BudgetTracker() {
   const [budgetAmt, setBudgetAmt] = useState("");
   // Calendar
   const [selectedDate, setSelectedDate] = useState(null);
+  const [isSubmittingTx, setIsSubmittingTx] = useState(false);
+  const amountInputRef = useRef(null);
 
   // ── Load Data ──
   useEffect(() => {
@@ -480,14 +484,32 @@ export default function BudgetTracker() {
   }, [loaded, recurring]);
 
   // ── Save helpers ──
-  const saveTx = useCallback((txs) => { setTransactions(txs); save(STORAGE_KEYS.transactions, txs); }, []);
-  const saveRec = useCallback((recs) => { setRecurring(recs); save(STORAGE_KEYS.recurring, recs); }, []);
-  const saveCats = useCallback((type, cats) => {
-    if (type === "expense") { setExpCats(cats); save(STORAGE_KEYS.expenseCategories, cats); }
-    else { setIncCats(cats); save(STORAGE_KEYS.incomeCategories, cats); }
+  const saveTx = useCallback((txs) => {
+    setTransactions(txs);
+    save(STORAGE_KEYS.transactions, txs).catch((error) => console.error("Transaction save error:", error));
   }, []);
-  const saveColors = useCallback((cols) => { setCatColors(cols); save(STORAGE_KEYS.categoryColors, cols); }, []);
-  const saveBudgets = useCallback((buds) => { setBudgets(buds); save(STORAGE_KEYS.budgets, buds); }, []);
+  const saveRec = useCallback((recs) => {
+    setRecurring(recs);
+    save(STORAGE_KEYS.recurring, recs).catch((error) => console.error("Recurring save error:", error));
+  }, []);
+  const saveCats = useCallback((type, cats) => {
+    if (type === "expense") {
+      setExpCats(cats);
+      save(STORAGE_KEYS.expenseCategories, cats).catch((error) => console.error("Expense category save error:", error));
+    }
+    else {
+      setIncCats(cats);
+      save(STORAGE_KEYS.incomeCategories, cats).catch((error) => console.error("Income category save error:", error));
+    }
+  }, []);
+  const saveColors = useCallback((cols) => {
+    setCatColors(cols);
+    save(STORAGE_KEYS.categoryColors, cols).catch((error) => console.error("Category color save error:", error));
+  }, []);
+  const saveBudgets = useCallback((buds) => {
+    setBudgets(buds);
+    save(STORAGE_KEYS.budgets, buds).catch((error) => console.error("Budget save error:", error));
+  }, []);
 
   // ── Computed ──
   const monthTxs = useMemo(() =>
@@ -531,16 +553,53 @@ export default function BudgetTracker() {
     setFType(tx.type); setFAmount(String(tx.amount)); setFCat(tx.category); setFDate(tx.date); setFMemo(tx.memo || "");
     setShowTxModal(true);
   };
-  const submitTx = () => {
+
+  useEffect(() => {
+    if (!showTxModal) return;
+
+    const timer = window.setTimeout(() => {
+      amountInputRef.current?.focus();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [showTxModal, editTx]);
+
+  const submitTx = async ({ keepOpen = false } = {}) => {
     const amt = parseInt(fAmount);
     // [BUG FIX] amt <= 0 체크 추가 (음수/0 입력 방지)
     if (!amt || amt <= 0 || !fCat) return;
-    if (editTx) {
-      saveTx(transactions.map(t => t.id === editTx.id ? { ...t, type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo } : t));
-    } else {
-      saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
+
+    const nextTxs = editTx
+      ? transactions.map(t => t.id === editTx.id ? { ...t, type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo } : t)
+      : [...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }];
+
+    setIsSubmittingTx(true);
+
+    try {
+      setTransactions(nextTxs);
+      await save(STORAGE_KEYS.transactions, nextTxs);
+
+      if (editTx || !keepOpen) {
+        setShowTxModal(false);
+        return;
+      }
+
+      const preservedDate = fDate;
+      setFAmount("");
+      setFCat("");
+      setFDate(preservedDate);
+      setFMemo("");
+
+      window.setTimeout(() => {
+        amountInputRef.current?.focus();
+      }, 0);
+    } catch (error) {
+      console.error("Transaction submit error:", error);
+      setTransactions(transactions);
+      setToast({ message: "저장에 실패했어요. Supabase 설정과 네트워크를 확인해주세요." });
+    } finally {
+      setIsSubmittingTx(false);
     }
-    setShowTxModal(false);
   };
 
   // [NEW] 삭제 시 실행취소 토스트
@@ -1040,33 +1099,59 @@ export default function BudgetTracker() {
       <Toast toast={toast} onHide={hideToast} />
 
       {/* ── Transaction Modal ── */}
-      <Modal open={showTxModal} onClose={() => setShowTxModal(false)} title={editTx ? "내역 수정" : "내역 추가"}>
+      <Modal open={showTxModal} onClose={() => !isSubmittingTx && setShowTxModal(false)} title={editTx ? "내역 수정" : "내역 추가"} disableClose={isSubmittingTx}>
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           {["expense", "income"].map(t => (
-            <button key={t} onClick={() => { setFType(t); setFCat(""); }}
+            <button key={t} onClick={() => { setFType(t); setFCat(""); }} disabled={isSubmittingTx}
               style={{ ...S.btnSm(fType === t ? (t === "expense" ? "rgba(255,107,107,0.2)" : "rgba(46,204,113,0.2)") : "rgba(255,255,255,0.06)",
-                fType === t ? (t === "expense" ? "#FF6B6B" : "#2ECC71") : "#888"), flex: 1, padding: "10px 0", fontSize: 15 }}>
+                fType === t ? (t === "expense" ? "#FF6B6B" : "#2ECC71") : "#888"), flex: 1, padding: "10px 0", fontSize: 15, opacity: isSubmittingTx ? 0.6 : 1, cursor: isSubmittingTx ? "not-allowed" : "pointer" }}>
               {t === "expense" ? "지출" : "수입"}
             </button>
           ))}
         </div>
         <Field label="금액">
           {/* [NEW] 자동 콤마 AmountInput */}
-          <AmountInput style={S.input} value={fAmount} onChange={setFAmount} />
+          <AmountInput style={S.input} value={fAmount} onChange={setFAmount} inputRef={amountInputRef} disabled={isSubmittingTx} />
         </Field>
         <Field label="카테고리">
-          <select style={S.select} value={fCat} onChange={e => setFCat(e.target.value)}>
+          <select style={S.select} value={fCat} onChange={e => setFCat(e.target.value)} disabled={isSubmittingTx}>
             <option value="" style={{ color: "#000" }}>선택</option>
             {cats.map(c => <option key={c} value={c} style={{ color: "#000" }}>{c}</option>)}
           </select>
         </Field>
         <Field label="날짜">
-          <input style={S.input} type="date" value={fDate} onChange={e => setFDate(e.target.value)} />
+          <input style={S.input} type="date" value={fDate} onChange={e => setFDate(e.target.value)} disabled={isSubmittingTx} />
         </Field>
         <Field label="메모">
-          <input style={S.input} placeholder="메모 (선택)" value={fMemo} onChange={e => setFMemo(e.target.value)} />
+          <input style={S.input} placeholder="메모 (선택)" value={fMemo} onChange={e => setFMemo(e.target.value)} disabled={isSubmittingTx} />
         </Field>
-        <button onClick={submitTx} style={S.btn()}>{editTx ? "수정" : "추가"}</button>
+
+        {editTx ? (
+          <button
+            onClick={() => submitTx()}
+            disabled={isSubmittingTx}
+            style={{ ...S.btn(), opacity: isSubmittingTx ? 0.7 : 1, cursor: isSubmittingTx ? "not-allowed" : "pointer" }}
+          >
+            {isSubmittingTx ? "저장 중..." : "수정"}
+          </button>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <button
+              onClick={() => submitTx()}
+              disabled={isSubmittingTx}
+              style={{ ...S.btn(), opacity: isSubmittingTx ? 0.7 : 1, cursor: isSubmittingTx ? "not-allowed" : "pointer" }}
+            >
+              {isSubmittingTx ? "저장 중..." : "추가"}
+            </button>
+            <button
+              onClick={() => submitTx({ keepOpen: true })}
+              disabled={isSubmittingTx}
+              style={{ ...S.btn("rgba(255,255,255,0.12)"), color: "#E8E6E3", opacity: isSubmittingTx ? 0.7 : 1, cursor: isSubmittingTx ? "not-allowed" : "pointer" }}
+            >
+              {isSubmittingTx ? "저장 중..." : "계속입력"}
+            </button>
+          </div>
+        )}
       </Modal>
 
       {/* ── Recurring Modal ── */}
