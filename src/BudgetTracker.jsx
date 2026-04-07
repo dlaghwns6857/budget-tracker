@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, forwardRef } from "react";
 
 // ─── Constants ───────────────────────────────────────────────────────
 const DEFAULT_EXPENSE_CATEGORIES = [
@@ -347,19 +347,21 @@ function Field({ label, children }) {
 }
 
 // ── [NEW] Amount Input - 자동 콤마 포맷 ──
-function AmountInput({ value, onChange, style }) {
+const AmountInput = forwardRef(function AmountInput({ value, onChange, onKeyDown, style }, ref) {
   const display = value ? parseInt(value).toLocaleString("ko-KR") : "";
   return (
     <input
+      ref={ref}
       style={style}
       type="text"
       inputMode="numeric"
       placeholder="0"
       value={display}
       onChange={e => onChange(e.target.value.replace(/[^0-9]/g, ""))}
+      onKeyDown={onKeyDown}
     />
   );
-}
+});
 
 // ── [NEW] Toast - 실행취소 알림 ──
 function Toast({ toast, onHide }) {
@@ -415,10 +417,8 @@ export default function BudgetTracker() {
 
   // Form state
   const [fType, setFType] = useState("expense");
-  const [fAmount, setFAmount] = useState("");
-  const [fCat, setFCat] = useState("");
-  const [fDate, setFDate] = useState(today());
-  const [fMemo, setFMemo] = useState("");
+  const [fRows, setFRows] = useState([{ amount: "", cat: "", date: today(), memo: "" }]);
+  const amountInputRefs = useRef([]);
   // Recurring form
   const [rType, setRType] = useState("expense");
   const [rAmount, setRAmount] = useState("");
@@ -523,25 +523,53 @@ export default function BudgetTracker() {
   // ── Handlers ──
   const openAddTx = (overrideDate) => {
     setEditTx(null);
-    setFType("expense"); setFAmount(""); setFCat(""); setFDate(overrideDate || today()); setFMemo("");
+    setFType("expense");
+    const dateArg = typeof overrideDate === "string" ? overrideDate : null;
+    setFRows([{ amount: "", cat: "", date: dateArg || today(), memo: "" }]);
     setShowTxModal(true);
   };
   const openEditTx = (tx) => {
     setEditTx(tx);
-    setFType(tx.type); setFAmount(String(tx.amount)); setFCat(tx.category); setFDate(tx.date); setFMemo(tx.memo || "");
+    setFType(tx.type);
+    setFRows([{ amount: String(tx.amount), cat: tx.category, date: tx.date, memo: tx.memo || "" }]);
     setShowTxModal(true);
   };
   const submitTx = () => {
-    const amt = parseInt(fAmount);
-    // [BUG FIX] amt <= 0 체크 추가 (음수/0 입력 방지)
-    if (!amt || amt <= 0 || !fCat) return;
     if (editTx) {
-      saveTx(transactions.map(t => t.id === editTx.id ? { ...t, type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo } : t));
+      const row = fRows[0];
+      const amt = parseInt(row.amount);
+      // [BUG FIX] amt <= 0 체크 추가 (음수/0 입력 방지)
+      if (!amt || amt <= 0 || !row.cat) return;
+      saveTx(transactions.map(t => t.id === editTx.id
+        ? { ...t, type: fType, amount: amt, category: row.cat, date: row.date, memo: row.memo }
+        : t));
     } else {
-      saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
+      const validRows = fRows.filter(r => { const a = parseInt(r.amount); return a > 0 && r.cat; });
+      if (validRows.length === 0) return;
+      saveTx([...transactions, ...validRows.map(r => ({
+        id: genId(), type: fType, amount: parseInt(r.amount),
+        category: r.cat, date: r.date, memo: r.memo, isRecurring: false,
+      }))]);
     }
     setShowTxModal(false);
   };
+
+  const addRow = useCallback((afterIdx) => {
+    setFRows(prev => {
+      const next = [...prev];
+      next.splice(afterIdx + 1, 0, { amount: "", cat: "", date: prev[afterIdx]?.date || today(), memo: "" });
+      return next;
+    });
+    setTimeout(() => amountInputRefs.current[afterIdx + 1]?.focus(), 50);
+  }, []);
+
+  const removeRow = useCallback((idx) => {
+    setFRows(prev => prev.length <= 1 ? prev : prev.filter((_, i) => i !== idx));
+  }, []);
+
+  const updateRow = useCallback((idx, field, value) => {
+    setFRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
+  }, []);
 
   // [NEW] 삭제 시 실행취소 토스트
   const deleteTx = (id) => {
@@ -1043,30 +1071,65 @@ export default function BudgetTracker() {
       <Modal open={showTxModal} onClose={() => setShowTxModal(false)} title={editTx ? "내역 수정" : "내역 추가"}>
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           {["expense", "income"].map(t => (
-            <button key={t} onClick={() => { setFType(t); setFCat(""); }}
+            <button key={t} onClick={() => { setFType(t); setFRows(prev => prev.map(r => ({ ...r, cat: "" }))); }}
               style={{ ...S.btnSm(fType === t ? (t === "expense" ? "rgba(255,107,107,0.2)" : "rgba(46,204,113,0.2)") : "rgba(255,255,255,0.06)",
                 fType === t ? (t === "expense" ? "#FF6B6B" : "#2ECC71") : "#888"), flex: 1, padding: "10px 0", fontSize: 15 }}>
               {t === "expense" ? "지출" : "수입"}
             </button>
           ))}
         </div>
-        <Field label="금액">
-          {/* [NEW] 자동 콤마 AmountInput */}
-          <AmountInput style={S.input} value={fAmount} onChange={setFAmount} />
-        </Field>
-        <Field label="카테고리">
-          <select style={S.select} value={fCat} onChange={e => setFCat(e.target.value)}>
-            <option value="" style={{ color: "#000" }}>선택</option>
-            {cats.map(c => <option key={c} value={c} style={{ color: "#000" }}>{c}</option>)}
-          </select>
-        </Field>
-        <Field label="날짜">
-          <input style={S.input} type="date" value={fDate} onChange={e => setFDate(e.target.value)} />
-        </Field>
-        <Field label="메모">
-          <input style={S.input} placeholder="메모 (선택)" value={fMemo} onChange={e => setFMemo(e.target.value)} />
-        </Field>
-        <button onClick={submitTx} style={S.btn()}>{editTx ? "수정" : "추가"}</button>
+        {fRows.map((row, idx) => (
+          <div key={idx}>
+            {idx > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0 16px" }}>
+                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+                <span style={{ fontSize: 11, color: "#666", fontWeight: 500 }}>{idx + 1}번째</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+              </div>
+            )}
+            <Field label="금액">
+              <div style={{ display: "flex", gap: 8 }}>
+                <AmountInput
+                  ref={el => { amountInputRefs.current[idx] = el; }}
+                  style={{ ...S.input, flex: 1 }}
+                  value={row.amount}
+                  onChange={v => updateRow(idx, "amount", v)}
+                  onKeyDown={e => { if (e.key === "Enter" && !editTx) { e.preventDefault(); addRow(idx); } }}
+                />
+                {!editTx && (
+                  <button type="button" onClick={() => addRow(idx)} title="계속 입력"
+                    style={{ background: "rgba(108,156,255,0.15)", color: "#6C9CFF", border: "none", borderRadius: 10, width: 46, height: 46, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "all .2s" }}>
+                    <Icon d={Icons.plus} size={20} />
+                  </button>
+                )}
+                {!editTx && fRows.length > 1 && (
+                  <button type="button" onClick={() => removeRow(idx)} title="행 삭제"
+                    style={{ background: "rgba(255,107,107,0.12)", color: "#FF6B6B", border: "none", borderRadius: 10, width: 46, height: 46, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "all .2s" }}>
+                    <Icon d={Icons.minus} size={20} />
+                  </button>
+                )}
+              </div>
+            </Field>
+            <Field label="카테고리">
+              <select style={S.select} value={row.cat} onChange={e => updateRow(idx, "cat", e.target.value)}>
+                <option value="" style={{ color: "#000" }}>선택</option>
+                {cats.map(c => <option key={c} value={c} style={{ color: "#000" }}>{c}</option>)}
+              </select>
+            </Field>
+            <Field label="날짜">
+              <input style={S.input} type="date" value={row.date} onChange={e => updateRow(idx, "date", e.target.value)} />
+            </Field>
+            <Field label="메모">
+              <input style={S.input} placeholder="메모 (선택)" value={row.memo}
+                onChange={e => updateRow(idx, "memo", e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !editTx) { e.preventDefault(); addRow(idx); } }}
+              />
+            </Field>
+          </div>
+        ))}
+        <button onClick={submitTx} style={S.btn()}>
+          {editTx ? "수정" : fRows.length > 1 ? `${fRows.length}건 추가` : "추가"}
+        </button>
       </Modal>
 
       {/* ── Recurring Modal ── */}
