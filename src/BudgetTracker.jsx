@@ -30,6 +30,8 @@ const STORAGE_KEYS = {
   categoryColors: "cat-colors"
 };
 
+const FOCUS_DELAY_MS = 50;
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 // [BUG FIX] crypto.randomUUID 사용으로 ID 충돌 방지
 const genId = () =>
@@ -524,8 +526,8 @@ export default function BudgetTracker() {
   const openAddTx = (overrideDate) => {
     setEditTx(null);
     setFType("expense");
-    const dateArg = typeof overrideDate === "string" ? overrideDate : null;
-    setFRows([{ amount: "", cat: "", date: dateArg || today(), memo: "" }]);
+    const safeDate = typeof overrideDate === "string" ? overrideDate : null;
+    setFRows([{ amount: "", cat: "", date: safeDate || today(), memo: "" }]);
     setShowTxModal(true);
   };
   const openEditTx = (tx) => {
@@ -560,7 +562,7 @@ export default function BudgetTracker() {
       next.splice(afterIdx + 1, 0, { amount: "", cat: "", date: prev[afterIdx]?.date || today(), memo: "" });
       return next;
     });
-    setTimeout(() => amountInputRefs.current[afterIdx + 1]?.focus(), 50);
+    setTimeout(() => amountInputRefs.current[afterIdx + 1]?.focus(), FOCUS_DELAY_MS);
   }, []);
 
   const removeRow = useCallback((idx) => {
