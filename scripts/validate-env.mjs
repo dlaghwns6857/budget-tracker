@@ -2,6 +2,11 @@ const mode = process.argv[2] || "client";
 
 const requiredByMode = {
   client: ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
+  migrations: [
+    "SUPABASE_PROJECT_ID",
+    "SUPABASE_DB_PASSWORD",
+    "SUPABASE_ACCESS_TOKEN",
+  ],
   github: [
     "VITE_SUPABASE_URL",
     "VITE_SUPABASE_ANON_KEY",

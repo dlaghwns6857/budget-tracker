@@ -11,6 +11,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check:env:client": "node ./scripts/validate-env.mjs client",
+    "check:env:migrations": "node ./scripts/validate-env.mjs migrations",
     "check:env:github": "node ./scripts/validate-env.mjs github"
   },
   "dependencies": {

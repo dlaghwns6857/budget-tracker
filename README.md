@@ -1,6 +1,6 @@
 # Budget App
 
-Vite + React 프론트엔드와 Supabase 저장소를 사용하는 가계부 앱입니다. 이 저장소는 GitHub를 기준으로 프론트 배포, 데이터베이스 migration, 환경변수 관리, 팀 온보딩까지 한 번에 관리하는 구조를 목표로 합니다.
+Vite + React 프론트엔드와 Supabase 저장소를 사용하는 가계부 앱입니다. 현재 운영 방식은 Vercel의 Git 연동으로 프론트 배포를 처리하고, GitHub Actions는 코드 검증과 Supabase migration 반영을 담당하도록 분리되어 있습니다.
 
 ## 현재 구조
 
@@ -53,16 +53,16 @@ VITE_SUPABASE_ANON_KEY=your-public-anon-key
 
 다음 항목을 GitHub 저장소의 `Settings > Secrets and variables > Actions`에 등록합니다.
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
 - `SUPABASE_PROJECT_ID`
 - `SUPABASE_DB_PASSWORD`
 - `SUPABASE_ACCESS_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
-- `VERCEL_TOKEN`
 
-이 구조를 쓰면 코드에는 키를 하드코딩하지 않고, 개발/운영 환경을 GitHub와 Vercel에서 일관되게 맞출 수 있습니다.
+추가로 Vercel 프로젝트 설정에는 아래 두 값을 등록합니다.
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+이 구조를 쓰면 코드에는 키를 하드코딩하지 않고, 데이터베이스 자동화는 GitHub에서, 프론트 배포는 Vercel에서 안정적으로 나눠 관리할 수 있습니다.
 
 ## 로컬 개발 시작
 
@@ -116,9 +116,9 @@ supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-운영에서는 기본적으로 `main` 브랜치에 push하면 GitHub Actions가 같은 작업을 수행하도록 구성했습니다.
+운영에서는 기본적으로 `main` 브랜치에 push하면 GitHub Actions가 migration을 반영하고, 같은 push를 감지한 Vercel이 프론트를 배포합니다.
 
-## GitHub 중심 배포 흐름
+## 운영 자동화 흐름
 
 ### CI
 
@@ -128,13 +128,12 @@ supabase db push
 - 필수 클라이언트 환경변수 검사
 - Vite 빌드 검증
 
-### Production Deploy
+### Supabase Migration Sync
 
 `.github/workflows/deploy.yml`
 
 - `main` push 또는 수동 실행 시 동작
 - Supabase CLI로 migration 반영
-- Vercel CLI로 production build/deploy 실행
 
 즉, 기본 운영 플로우는 아래처럼 단순화됩니다.
 
@@ -142,22 +141,22 @@ supabase db push
 2. migration 포함 커밋
 3. GitHub push
 4. Actions가 migration 반영
-5. Actions가 Vercel production 배포
+5. Vercel Git 연동이 production 배포
 
 ## Vercel 연결 방식
 
 이 저장소는 `vercel.json`과 GitHub Actions를 함께 둡니다.
 
 - `vercel.json`: 빌드 방식과 출력 폴더를 코드로 관리
-- `deploy.yml`: 어떤 브랜치에서 어떤 환경으로 배포할지 GitHub에서 관리
+- `deploy.yml`: Supabase migration을 GitHub에서 관리
 
 권장 설정:
 
 1. Vercel에서 이 GitHub 저장소를 연결합니다.
 2. Project Settings에서 Environment Variables에도 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`를 등록합니다.
-3. 실제 배포 트리거는 GitHub Actions 또는 Vercel Git integration 둘 중 하나를 메인으로 정합니다.
+3. 실제 프론트 배포는 Vercel Git integration 하나만 메인으로 사용합니다.
 
-현재 예시는 `GitHub Actions 중심`입니다. 중복 배포를 피하려면 Vercel의 자동 Production Deployment는 비활성화하거나 Preview 전용으로만 쓰는 것이 좋습니다.
+현재 예시는 `Vercel 배포 + GitHub migration` 분리형입니다. 이 구성이 중복 배포와 `.vercel` 충돌을 피하기 가장 쉽습니다.
 
 ## 팀 온보딩 체크리스트
 
