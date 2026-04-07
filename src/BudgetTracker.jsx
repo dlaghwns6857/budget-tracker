@@ -361,7 +361,7 @@ function AmountInput({ value, onChange, style, inputRef, disabled = false }) {
       onChange={e => onChange(e.target.value.replace(/[^0-9]/g, ""))}
     />
   );
-}
+};
 
 // ── [NEW] Toast - 실행취소 알림 ──
 function Toast({ toast, onHide }) {
@@ -544,8 +544,9 @@ export default function BudgetTracker() {
 
   // ── Handlers ──
   const openAddTx = (overrideDate) => {
+    const safeDate = typeof overrideDate === "string" ? overrideDate : today();
     setEditTx(null);
-    setFType("expense"); setFAmount(""); setFCat(""); setFDate(overrideDate || today()); setFMemo("");
+    setFType("expense"); setFAmount(""); setFCat(""); setFDate(safeDate); setFMemo("");
     setShowTxModal(true);
   };
   const openEditTx = (tx) => {
