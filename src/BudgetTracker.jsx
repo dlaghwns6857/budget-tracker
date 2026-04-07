@@ -531,7 +531,7 @@ export default function BudgetTracker() {
     setFType(tx.type); setFAmount(String(tx.amount)); setFCat(tx.category); setFDate(tx.date); setFMemo(tx.memo || "");
     setShowTxModal(true);
   };
-  const submitTx = () => {
+  const submitTx = (keepOpen = false) => {
     const amt = parseInt(fAmount);
     // [BUG FIX] amt <= 0 체크 추가 (음수/0 입력 방지)
     if (!amt || amt <= 0 || !fCat) return;
@@ -540,7 +540,12 @@ export default function BudgetTracker() {
     } else {
       saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
     }
-    setShowTxModal(false);
+    if (keepOpen) {
+      // 계속입력: 모달 유지, 폼 초기화 (type 탭은 유지)
+      setFAmount(""); setFCat(""); setFDate(today()); setFMemo("");
+    } else {
+      setShowTxModal(false);
+    }
   };
 
   // [NEW] 삭제 시 실행취소 토스트
@@ -1066,7 +1071,12 @@ export default function BudgetTracker() {
         <Field label="메모">
           <input style={S.input} placeholder="메모 (선택)" value={fMemo} onChange={e => setFMemo(e.target.value)} />
         </Field>
-        <button onClick={submitTx} style={S.btn()}>{editTx ? "수정" : "추가"}</button>
+        <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+          <button onClick={() => submitTx(false)} style={{ ...S.btn(), flex: 1 }}>{editTx ? "수정" : "추가"}</button>
+          {!editTx && (
+            <button onClick={() => submitTx(true)} style={{ ...S.btn("rgba(108,156,255,0.18)"), flex: 1, color: "#6C9CFF" }}>계속입력</button>
+          )}
+        </div>
       </Modal>
 
       {/* ── Recurring Modal ── */}
