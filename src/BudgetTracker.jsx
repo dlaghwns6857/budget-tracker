@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, forwardRef } from "react";
 
 // ─── Constants ───────────────────────────────────────────────────────
 const DEFAULT_EXPENSE_CATEGORIES = [
@@ -347,10 +347,11 @@ function Field({ label, children }) {
 }
 
 // ── [NEW] Amount Input - 자동 콤마 포맷 ──
-function AmountInput({ value, onChange, style }) {
+const AmountInput = forwardRef(function AmountInput({ value, onChange, style }, ref) {
   const display = value ? parseInt(value).toLocaleString("ko-KR") : "";
   return (
     <input
+      ref={ref}
       style={style}
       type="text"
       inputMode="numeric"
@@ -359,7 +360,7 @@ function AmountInput({ value, onChange, style }) {
       onChange={e => onChange(e.target.value.replace(/[^0-9]/g, ""))}
     />
   );
-}
+});
 
 // ── [NEW] Toast - 실행취소 알림 ──
 function Toast({ toast, onHide }) {
@@ -419,6 +420,7 @@ export default function BudgetTracker() {
   const [fCat, setFCat] = useState("");
   const [fDate, setFDate] = useState(today());
   const [fMemo, setFMemo] = useState("");
+  const amountRef = useRef(null);
   // Recurring form
   const [rType, setRType] = useState("expense");
   const [rAmount, setRAmount] = useState("");
@@ -541,6 +543,17 @@ export default function BudgetTracker() {
       saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
     }
     setShowTxModal(false);
+  };
+
+  const submitTxContinue = () => {
+    const amt = parseInt(fAmount);
+    if (!amt || amt <= 0 || !fCat) return;
+    saveTx([...transactions, { id: genId(), type: fType, amount: amt, category: fCat, date: fDate, memo: fMemo, isRecurring: false }]);
+    // 날짜·탭(type) 유지, 카테고리/금액/메모 리셋
+    setFAmount("");
+    setFCat("");
+    setFMemo("");
+    setTimeout(() => amountRef.current?.focus(), 0);
   };
 
   // [NEW] 삭제 시 실행취소 토스트
@@ -1052,7 +1065,7 @@ export default function BudgetTracker() {
         </div>
         <Field label="금액">
           {/* [NEW] 자동 콤마 AmountInput */}
-          <AmountInput style={S.input} value={fAmount} onChange={setFAmount} />
+          <AmountInput ref={amountRef} style={S.input} value={fAmount} onChange={setFAmount} />
         </Field>
         <Field label="카테고리">
           <select style={S.select} value={fCat} onChange={e => setFCat(e.target.value)}>
@@ -1066,7 +1079,12 @@ export default function BudgetTracker() {
         <Field label="메모">
           <input style={S.input} placeholder="메모 (선택)" value={fMemo} onChange={e => setFMemo(e.target.value)} />
         </Field>
-        <button onClick={submitTx} style={S.btn()}>{editTx ? "수정" : "추가"}</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={submitTx} style={{ ...S.btn(), flex: 1 }}>{editTx ? "수정" : "추가"}</button>
+          {!editTx && (
+            <button onClick={submitTxContinue} style={{ ...S.btn("rgba(108,156,255,0.85)"), flex: 1 }}>계속입력</button>
+          )}
+        </div>
       </Modal>
 
       {/* ── Recurring Modal ── */}
