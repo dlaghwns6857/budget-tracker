@@ -55,6 +55,14 @@ const getYM = (d) => d.slice(0, 7);
 
 // [BUG FIX] 날짜 파싱을 로컬 타임존 기준으로 처리
 const parseLocalDate = (dateStr) => new Date(dateStr + "T00:00:00");
+const getDaysInMonth = (ym) => {
+  const [y, m] = ym.split("-").map(Number);
+  return new Date(y, m, 0).getDate();
+};
+const getRecurringDateForMonth = (ym, day) => {
+  const clampedDay = Math.min(Number(day), getDaysInMonth(ym));
+  return `${ym}-${String(clampedDay).padStart(2, "0")}`;
+};
 
 // [BUG FIX] CSV 필드 이스케이프 (쉼표/따옴표 포함된 메모 깨짐 방지)
 const csvEscape = (v) => `"${String(v).replace(/"/g, '""')}"`;
@@ -435,6 +443,10 @@ export default function BudgetTracker() {
   const [filterType, setFilterType] = useState("all");
   const [minAmt, setMinAmt] = useState("");   // [NEW] 금액 범위 필터
   const [maxAmt, setMaxAmt] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterRecurring, setFilterRecurring] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [toast, setToast] = useState(null);   // [NEW] 토스트
   const hideToast = useCallback(() => setToast(null), []);
 
@@ -553,11 +565,21 @@ export default function BudgetTracker() {
     let list = monthTxs;
     if (filterType !== "all") list = list.filter(t => t.type === filterType);
     if (searchQ) list = list.filter(t => t.category.includes(searchQ) || (t.memo && t.memo.includes(searchQ)));
+    if (filterCategory !== "all") list = list.filter(t => t.category === filterCategory);
+    if (filterRecurring === "only") list = list.filter(t => t.isRecurring);
+    if (filterRecurring === "exclude") list = list.filter(t => !t.isRecurring);
+    if (dateFrom) list = list.filter(t => t.date >= dateFrom);
+    if (dateTo) list = list.filter(t => t.date <= dateTo);
     // [NEW] 금액 범위 필터
     if (minAmt) list = list.filter(t => t.amount >= parseInt(minAmt));
     if (maxAmt) list = list.filter(t => t.amount <= parseInt(maxAmt));
     return list;
-  }, [monthTxs, filterType, searchQ, minAmt, maxAmt]);
+  }, [monthTxs, filterType, searchQ, filterCategory, filterRecurring, dateFrom, dateTo, minAmt, maxAmt]);
+
+  const filterCategories = useMemo(() => {
+    const scoped = filterType === "all" ? monthTxs : monthTxs.filter((tx) => tx.type === filterType);
+    return [...new Set(scoped.map((tx) => tx.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ko"));
+  }, [monthTxs, filterType]);
 
   const summary = useMemo(() => {
     const income = monthTxs.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
@@ -573,6 +595,28 @@ export default function BudgetTracker() {
 
   const monthBudget = budgets[month] || {};
   const totalBudget = Object.values(monthBudget).reduce((s, v) => s + v, 0);
+  const upcomingRecurringExpenses = useMemo(() => {
+    const currentYM = getYM(today());
+    if (month < currentYM) return [];
+
+    const baseDate = parseLocalDate(today());
+    const minDate = month === currentYM ? today() : `${month}-01`;
+
+    return recurring
+      .filter((item) => item.type === "expense")
+      .map((item) => {
+        const scheduledDate = getRecurringDateForMonth(month, item.day);
+        const diffDays = Math.ceil((parseLocalDate(scheduledDate) - baseDate) / (1000 * 60 * 60 * 24));
+        return {
+          ...item,
+          scheduledDate,
+          diffDays,
+        };
+      })
+      .filter((item) => item.scheduledDate >= minDate)
+      .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate) || a.amount - b.amount);
+  }, [recurring, month]);
+  const upcomingRecurringTotal = upcomingRecurringExpenses.reduce((sum, item) => sum + item.amount, 0);
 
   // ── Handlers ──
   const openAddTx = (overrideDate) => {
@@ -728,6 +772,17 @@ export default function BudgetTracker() {
     setToast({ message: "거래 내역이 초기화되었어요" });
   };
 
+  const clearListFilters = () => {
+    setSearchQ("");
+    setFilterType("all");
+    setFilterCategory("all");
+    setFilterRecurring("all");
+    setDateFrom("");
+    setDateTo("");
+    setMinAmt("");
+    setMaxAmt("");
+  };
+
   // [BUG FIX] CSV 메모 필드 쉼표/따옴표 이스케이프
   const exportCSV = () => {
     const rows = [["날짜", "유형", "카테고리", "금액", "메모"]];
@@ -826,6 +881,45 @@ export default function BudgetTracker() {
 
         <div style={S.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={S.cardTitle}>다가오는 고정비</span>
+            <span style={{ fontSize: 12, color: "#888" }}>
+              {upcomingRecurringExpenses.length > 0 ? `${formatNum(upcomingRecurringTotal)}원 예정` : month < getYM(today()) ? "지난 달" : "예정 없음"}
+            </span>
+          </div>
+          {upcomingRecurringExpenses.length === 0 ? (
+            <div style={S.empty}>
+              {month < getYM(today()) ? "선택한 달은 이미 지났어요" : "남은 고정비가 없어요"}
+            </div>
+          ) : (
+            upcomingRecurringExpenses.slice(0, 5).map((item) => {
+              const dueLabel = item.diffDays <= 0 ? "오늘" : `D-${item.diffDays}`;
+              return (
+                <div key={`${item.id}-${item.scheduledDate}`} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <CatChip name={item.category} colors={catColors} />
+                      <span style={{ fontSize: 12, color: "#888" }}>{item.scheduledDate.slice(5)} · {dueLabel}</span>
+                    </div>
+                    <div style={{ fontSize: 13, color: "#AAA", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {item.memo || "고정비"}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#FF6B6B", flexShrink: 0 }}>
+                    -{formatNum(item.amount)}원
+                  </div>
+                </div>
+              );
+            })
+          )}
+          {upcomingRecurringExpenses.length > 5 && (
+            <div style={{ fontSize: 12, color: "#777", marginTop: 10 }}>
+              나머지 {upcomingRecurringExpenses.length - 5}건도 이번 달 예정돼 있어요.
+            </div>
+          )}
+        </div>
+
+        <div style={S.card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <span style={S.cardTitle}>
               {selectedDate ? dayLabel(selectedDate) : "최근 내역"}
             </span>
@@ -887,7 +981,7 @@ export default function BudgetTracker() {
       </div>
       <div style={{ padding: "12px 20px 0", display: "flex", gap: 8 }}>
         <div style={{ position: "relative", flex: 1 }}>
-          <input style={{ ...S.input, paddingLeft: 36 }} placeholder="검색..." value={searchQ} onChange={e => setSearchQ(e.target.value)} />
+          <input style={{ ...S.input, paddingLeft: 36 }} placeholder="메모/카테고리 검색" value={searchQ} onChange={e => setSearchQ(e.target.value)} />
           <Icon d={Icons.search} size={16} color="#666" style={{ position: "absolute", left: 12, top: 14 }} />
         </div>
         <select style={{ ...S.select, width: 90 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
@@ -895,6 +989,26 @@ export default function BudgetTracker() {
           <option value="income" style={{ color: "#000" }}>수입</option>
           <option value="expense" style={{ color: "#000" }}>지출</option>
         </select>
+      </div>
+      <div style={{ padding: "8px 20px 0", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <select style={S.select} value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
+          <option value="all" style={{ color: "#000" }}>전체 카테고리</option>
+          {filterCategories.map((cat) => <option key={cat} value={cat} style={{ color: "#000" }}>{cat}</option>)}
+        </select>
+        <select style={S.select} value={filterRecurring} onChange={e => setFilterRecurring(e.target.value)}>
+          <option value="all" style={{ color: "#000" }}>반복 포함 전체</option>
+          <option value="only" style={{ color: "#000" }}>반복만</option>
+          <option value="exclude" style={{ color: "#000" }}>일반 내역만</option>
+        </select>
+      </div>
+      <div style={{ padding: "8px 20px 0", display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 8, alignItems: "center" }}>
+        <input style={S.input} type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+        <input style={S.input} type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+        {(searchQ || filterType !== "all" || filterCategory !== "all" || filterRecurring !== "all" || dateFrom || dateTo || minAmt || maxAmt) && (
+          <button onClick={clearListFilters} style={{ ...S.btnSm("rgba(255,255,255,0.06)", "#AAA"), padding: "12px 14px", whiteSpace: "nowrap" }}>
+            초기화
+          </button>
+        )}
       </div>
       {/* [NEW] 금액 범위 필터 */}
       <div style={{ padding: "8px 20px 0", display: "flex", gap: 6, alignItems: "center" }}>
@@ -913,6 +1027,9 @@ export default function BudgetTracker() {
             <Icon d={Icons.x} size={14} color="#888" />
           </button>
         )}
+      </div>
+      <div style={{ padding: "10px 20px 0", fontSize: 12, color: "#777" }}>
+        필터 결과 {filteredTxs.length}건
       </div>
       <div style={{ padding: "0 20px" }}>
         {filteredTxs.length === 0
