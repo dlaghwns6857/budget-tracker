@@ -881,6 +881,36 @@ export default function BudgetTracker() {
 
         <div style={S.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={S.cardTitle}>
+              {selectedDate ? dayLabel(selectedDate) : "사용내역"}
+            </span>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {selectedDate && (
+                <div style={{ display: "flex", gap: 10, fontSize: 13 }}>
+                  {dayInc > 0 && <span style={{ color: "#2ECC71", fontWeight: 600 }}>+{formatNum(dayInc)}</span>}
+                  {dayExp > 0 && <span style={{ color: "#FF6B6B", fontWeight: 600 }}>-{formatNum(dayExp)}</span>}
+                </div>
+              )}
+              {selectedDate
+                ? <button onClick={() => setSelectedDate(null)} style={{ ...S.btnGhost, fontSize: 12, color: "#888" }}>전체보기</button>
+                : <button onClick={() => setTab("list")} style={{ ...S.btnGhost, fontSize: 13, color: "#6C9CFF" }}>전체보기</button>
+              }
+            </div>
+          </div>
+          {displayTxs.length === 0
+            ? <div style={S.empty}>{selectedDate ? "이 날짜에 내역이 없어요" : "이번 달 내역이 없어요"}</div>
+            : displayTxs.map(tx => <TxRow key={tx.id} tx={tx} colors={catColors} onEdit={openEditTx} onDelete={deleteTx} />)
+          }
+          {selectedDate && (
+            <button onClick={() => openAddTx(selectedDate)}
+              style={{ ...S.btnSm("rgba(108,156,255,0.12)", "#6C9CFF"), marginTop: 8, width: "100%", padding: "8px 0", textAlign: "center" }}>
+              이 날짜에 추가
+            </button>
+          )}
+        </div>
+
+        <div style={S.card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <span style={S.cardTitle}>다가오는 고정비</span>
             <span style={{ fontSize: 12, color: "#888" }}>
               {upcomingRecurringExpenses.length > 0 ? `${formatNum(upcomingRecurringTotal)}원 예정` : month < getYM(today()) ? "지난 달" : "예정 없음"}
@@ -915,36 +945,6 @@ export default function BudgetTracker() {
             <div style={{ fontSize: 12, color: "#777", marginTop: 10 }}>
               나머지 {upcomingRecurringExpenses.length - 5}건도 이번 달 예정돼 있어요.
             </div>
-          )}
-        </div>
-
-        <div style={S.card}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={S.cardTitle}>
-              {selectedDate ? dayLabel(selectedDate) : "최근 내역"}
-            </span>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              {selectedDate && (
-                <div style={{ display: "flex", gap: 10, fontSize: 13 }}>
-                  {dayInc > 0 && <span style={{ color: "#2ECC71", fontWeight: 600 }}>+{formatNum(dayInc)}</span>}
-                  {dayExp > 0 && <span style={{ color: "#FF6B6B", fontWeight: 600 }}>-{formatNum(dayExp)}</span>}
-                </div>
-              )}
-              {selectedDate
-                ? <button onClick={() => setSelectedDate(null)} style={{ ...S.btnGhost, fontSize: 12, color: "#888" }}>전체보기</button>
-                : <button onClick={() => setTab("list")} style={{ ...S.btnGhost, fontSize: 13, color: "#6C9CFF" }}>전체보기</button>
-              }
-            </div>
-          </div>
-          {displayTxs.length === 0
-            ? <div style={S.empty}>{selectedDate ? "이 날짜에 내역이 없어요" : "이번 달 내역이 없어요"}</div>
-            : displayTxs.map(tx => <TxRow key={tx.id} tx={tx} colors={catColors} onEdit={openEditTx} onDelete={deleteTx} />)
-          }
-          {selectedDate && (
-            <button onClick={() => openAddTx(selectedDate)}
-              style={{ ...S.btnSm("rgba(108,156,255,0.12)", "#6C9CFF"), marginTop: 8, width: "100%", padding: "8px 0", textAlign: "center" }}>
-              이 날짜에 추가
-            </button>
           )}
         </div>
 
