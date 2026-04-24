@@ -60,6 +60,7 @@ const STORAGE_KEYS = {
   budgets: "budgets",
   categoryColors: "cat-colors"
 };
+const THEME_KEY = "ui-theme-mode";
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 // [BUG FIX] crypto.randomUUID 사용으로 ID 충돌 방지
@@ -145,24 +146,24 @@ const Icons = {
 
 // ─── Styles ──────────────────────────────────────────────────────────
 const S = {
-  root: { fontFamily: "'Pretendard Variable', 'Apple SD Gothic Neo', -apple-system, sans-serif", background: "#FFFFFF", color: "#1F2330", minHeight: "100vh", maxWidth: 520, margin: "0 auto", padding: "0 0 100px", position: "relative", lineHeight: 1.5 },
-  nav: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 520, background: "rgba(255,255,255,0.96)", backdropFilter: "blur(20px) saturate(180%)", borderTop: "1px solid rgba(0,0,0,0.06)", display: "flex", zIndex: 100, padding: "6px 0 env(safe-area-inset-bottom, 8px)" },
-  navBtn: (active) => ({ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "8px 4px 4px", background: "none", border: "none", color: active ? "#2DC7B0" : "rgba(31,35,48,0.38)", fontSize: 10, fontWeight: 500, cursor: "pointer", transition: "color .2s" }),
+  root: { fontFamily: "'Pretendard Variable', 'Apple SD Gothic Neo', -apple-system, sans-serif", background: "var(--bg-page)", color: "var(--text)", minHeight: "100vh", maxWidth: 520, margin: "0 auto", padding: "0 0 100px", position: "relative", lineHeight: 1.5 },
+  nav: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 520, background: "var(--nav-bg)", backdropFilter: "blur(20px) saturate(180%)", borderTop: "1px solid var(--border-soft)", display: "flex", zIndex: 100, padding: "6px 0 env(safe-area-inset-bottom, 8px)" },
+  navBtn: (active) => ({ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "8px 4px 4px", background: "none", border: "none", color: active ? "#2DC7B0" : "var(--text-muted)", fontSize: 10, fontWeight: 500, cursor: "pointer", transition: "color .2s" }),
   header: { padding: "20px 20px 0", paddingTop: "env(safe-area-inset-top)", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  title: { fontSize: 26, fontWeight: 800, letterSpacing: -0.8, color: "#1F2330" },
-  card: { background: "#FFFFFF", borderRadius: 16, padding: "18px 20px", margin: "12px 20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" },
-  cardTitle: { fontSize: 13, color: "rgba(31,35,48,0.58)", fontWeight: 600, marginBottom: 8, letterSpacing: -0.2 },
+  title: { fontSize: 26, fontWeight: 800, letterSpacing: -0.8, color: "var(--text)" },
+  card: { background: "var(--bg-surface)", borderRadius: 16, padding: "18px 20px", margin: "12px 20px", border: "1px solid var(--border-soft)", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" },
+  cardTitle: { fontSize: 13, color: "var(--text-sub)", fontWeight: 600, marginBottom: 8, letterSpacing: -0.2 },
   btn: (bg = "#2DC7B0") => ({ background: bg, color: "#fff", border: "none", borderRadius: 12, padding: "12px 20px", fontSize: 15, fontWeight: 600, cursor: "pointer", width: "100%", transition: "opacity .2s" }),
   btnSm: (bg = "rgba(45,199,176,0.1)", c = "#2DC7B0") => ({ background: bg, color: c, border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all .2s" }),
-  btnGhost: { background: "none", border: "none", color: "rgba(31,35,48,0.38)", cursor: "pointer", padding: 6, display: "flex", alignItems: "center" },
-  input: { width: "100%", padding: "12px 14px", background: "#F6F7F9", border: "1px solid rgba(0,0,0,0.06)", borderRadius: 10, color: "#1F2330", fontSize: 15, outline: "none", boxSizing: "border-box", transition: "border-color .2s" },
-  select: { width: "100%", padding: "12px 14px", background: "#F6F7F9", border: "1px solid rgba(0,0,0,0.06)", borderRadius: 10, color: "#1F2330", fontSize: 15, outline: "none", boxSizing: "border-box", appearance: "none" },
-  label: { fontSize: 13, color: "rgba(31,35,48,0.58)", fontWeight: 600, marginBottom: 6, display: "block" },
-  tag: (bg) => ({ display: "inline-block", padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600, background: bg || "rgba(45,199,176,0.1)", color: "#1F2330" }),
-  divider: { height: 1, background: "rgba(0,0,0,0.05)", margin: "12px 0" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" },
-  modalContent: { background: "#FFFFFF", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 520, maxHeight: "85vh", overflow: "auto", padding: "24px 20px 40px" },
-  empty: { textAlign: "center", padding: "40px 20px", color: "rgba(31,35,48,0.35)", fontSize: 14 },
+  btnGhost: { background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 6, display: "flex", alignItems: "center" },
+  input: { width: "100%", padding: "12px 14px", background: "var(--input-bg)", border: "1px solid var(--border-soft)", borderRadius: 10, color: "var(--text)", fontSize: 15, outline: "none", boxSizing: "border-box", transition: "border-color .2s" },
+  select: { width: "100%", padding: "12px 14px", background: "var(--input-bg)", border: "1px solid var(--border-soft)", borderRadius: 10, color: "var(--text)", fontSize: 15, outline: "none", boxSizing: "border-box", appearance: "none" },
+  label: { fontSize: 13, color: "var(--text-sub)", fontWeight: 600, marginBottom: 6, display: "block" },
+  tag: (bg) => ({ display: "inline-block", padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600, background: bg || "rgba(45,199,176,0.1)", color: "var(--text)" }),
+  divider: { height: 1, background: "var(--border-soft)", margin: "12px 0" },
+  modalOverlay: { position: "fixed", inset: 0, background: "var(--overlay-bg)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" },
+  modalContent: { background: "var(--bg-surface)", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 520, maxHeight: "85vh", overflow: "auto", padding: "24px 20px 40px" },
+  empty: { textAlign: "center", padding: "40px 20px", color: "var(--text-muted)", fontSize: 14 },
 };
 
 // ─── Components ──────────────────────────────────────────────────────
@@ -195,15 +196,15 @@ function TxRow({ tx, colors, onEdit, onDelete }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
           <CatChip name={tx.category} colors={colors} />
-          {tx.isRecurring && <span style={{ fontSize: 11, color: "rgba(31,35,48,0.35)" }}>반복</span>}
+          {tx.isRecurring && <span style={{ fontSize: 11, color: "var(--text-muted)" }}>반복</span>}
         </div>
-        {tx.memo && <div style={{ fontSize: 13, color: "rgba(31,35,48,0.58)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.memo}</div>}
+        {tx.memo && <div style={{ fontSize: 13, color: "var(--text-sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.memo}</div>}
       </div>
       <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: 16, fontWeight: 600, color: isIncome ? "#00B87A" : "#F24565", fontVariantNumeric: "tabular-nums" }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: isIncome ? "var(--income)" : "var(--expense)", fontVariantNumeric: "tabular-nums" }}>
           {isIncome ? "+" : "-"}{formatNum(tx.amount)}원
         </div>
-        <div style={{ fontSize: 11, color: "rgba(31,35,48,0.35)" }}>{tx.date.slice(5)}</div>
+        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{tx.date.slice(5)}</div>
       </div>
       <div style={{ display: "flex", gap: 4 }}>
         <button onClick={() => onEdit(tx)} style={S.btnGhost}><Icon d={Icons.edit} size={15} color="#666" /></button>
@@ -237,14 +238,14 @@ function DonutChart({ data }) {
           );
         })}
         <text x={cx} y={cy - 6} textAnchor="middle" fill="#999" fontSize={11}>총 지출</text>
-        <text x={cx} y={cy + 14} textAnchor="middle" fill="#1F2330" fontSize={16} fontWeight="700">{formatNum(total)}</text>
+        <text x={cx} y={cy + 14} textAnchor="middle" fill="var(--text)" fontSize={16} fontWeight="700">{formatNum(total)}</text>
       </svg>
       <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13 }}>
         {data.slice(0, 6).map((d, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: d.color, flexShrink: 0 }} />
             <span style={{ color: d.color, fontWeight: 600 }}>{d.name}</span>
-            <span style={{ color: "#1F2330", fontWeight: 600, marginLeft: "auto" }}>{Math.round(d.value / total * 100)}%</span>
+            <span style={{ color: "var(--text)", fontWeight: 600, marginLeft: "auto" }}>{Math.round(d.value / total * 100)}%</span>
           </div>
         ))}
       </div>
@@ -276,16 +277,16 @@ function TrendChart({ transactions }) {
               <div style={{ flex: 1, background: "rgba(46,204,113,0.5)", borderRadius: "3px 3px 0 0", height: `${d.income / maxVal * 100}%`, minHeight: d.income > 0 ? 3 : 0, transition: "height .5s" }} />
               <div style={{ flex: 1, background: "rgba(255,107,107,0.5)", borderRadius: "3px 3px 0 0", height: `${d.expense / maxVal * 100}%`, minHeight: d.expense > 0 ? 3 : 0, transition: "height .5s" }} />
             </div>
-            <span style={{ fontSize: 10, color: "rgba(31,35,48,0.35)", marginTop: 4, whiteSpace: "nowrap" }}>{d.label}</span>
+            <span style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4, whiteSpace: "nowrap" }}>{d.label}</span>
           </div>
         ))}
       </div>
       <div style={{ display: "flex", gap: 16, marginTop: 10, fontSize: 12 }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 4, color: "rgba(31,35,48,0.58)" }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#00B87A", display: "inline-block" }} />수입
+        <span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--text-sub)" }}>
+          <span style={{ width: 10, height: 10, borderRadius: 2, background: "var(--income)", display: "inline-block" }} />수입
         </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 4, color: "rgba(31,35,48,0.58)" }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#F24565", display: "inline-block" }} />지출
+        <span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--text-sub)" }}>
+          <span style={{ width: 10, height: 10, borderRadius: 2, background: "var(--expense)", display: "inline-block" }} />지출
         </span>
       </div>
     </div>
@@ -299,11 +300,11 @@ function BudgetBar({ spent, budget }) {
   return (
     <div style={{ marginTop: 6 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-        <span style={{ color: over ? "#F24565" : "rgba(31,35,48,0.58)" }}>{formatNum(spent)}원 사용</span>
-        <span style={{ color: "rgba(31,35,48,0.35)" }}>{formatNum(budget)}원</span>
+        <span style={{ color: over ? "var(--expense)" : "var(--text-sub)" }}>{formatNum(spent)}원 사용</span>
+        <span style={{ color: "var(--text-muted)" }}>{formatNum(budget)}원</span>
       </div>
       <div style={{ height: 6, background: "rgba(0,0,0,0.05)", borderRadius: 3, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: over ? "linear-gradient(90deg,#F24565,#FF8BA5)" : "linear-gradient(90deg,#4A90E2,#2DC7B0)", borderRadius: 3, transition: "width .5s" }} />
+        <div style={{ height: "100%", width: `${pct}%`, background: over ? "linear-gradient(90deg,var(--expense),#FF8BA5)" : "linear-gradient(90deg,#4A90E2,var(--accent))", borderRadius: 3, transition: "width .5s" }} />
       </div>
     </div>
   );
@@ -434,12 +435,12 @@ function Toast({ toast, onHide }) {
   return (
     <div style={{
       position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)",
-      background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.06)",
+      background: "var(--bg-surface)", border: "1px solid var(--border-soft)",
       borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center",
       gap: 12, zIndex: 300, maxWidth: 320, width: "calc(100% - 40px)",
       boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
     }}>
-      <span style={{ flex: 1, fontSize: 14, color: "#1F2330" }}>{toast.message}</span>
+      <span style={{ flex: 1, fontSize: 14, color: "var(--text)" }}>{toast.message}</span>
       {toast.undo && (
         <button onClick={() => { toast.undo(); onHide(); }}
           style={{ ...S.btnSm("rgba(45,199,176,0.1)", "#2DC7B0"), flexShrink: 0 }}>
@@ -452,6 +453,10 @@ function Toast({ toast, onHide }) {
 
 // ─── Main App ────────────────────────────────────────────────────────
 export default function BudgetTracker() {
+  const [themeMode, setThemeMode] = useState(() => {
+    if (typeof window === "undefined") return "light";
+    return localStorage.getItem(THEME_KEY) || "light";
+  });
   const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState("home");
   const [month, setMonth] = useState(getYM(today()));
@@ -501,6 +506,11 @@ export default function BudgetTracker() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [isSubmittingTx, setIsSubmittingTx] = useState(false);
   const amountInputRef = useRef(null);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", themeMode);
+    localStorage.setItem(THEME_KEY, themeMode);
+  }, [themeMode]);
 
   // ── Load Data ──
   useEffect(() => {
@@ -875,29 +885,29 @@ export default function BudgetTracker() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px", borderBottom: "1px solid rgba(0,0,0,0.05)", marginBottom: 4 }}>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 26, height: 26, borderRadius: 8, background: "rgba(0,184,122,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon d={Icons.arrowDownLeft} size={14} color="#00B87A" />
+              <Icon d={Icons.arrowDownLeft} size={14} color="var(--income)" />
             </div>
             <div>
-              <div style={{ fontSize: 11, color: "rgba(31,35,48,0.35)", fontWeight: 600 }}>수입</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#00B87A", fontVariantNumeric: "tabular-nums" }}>{formatNum(summary.income)}</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>수입</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--income)", fontVariantNumeric: "tabular-nums" }}>{formatNum(summary.income)}</div>
             </div>
           </div>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 26, height: 26, borderRadius: 8, background: "rgba(242,69,101,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon d={Icons.arrowUpRight} size={14} color="#F24565" />
+              <Icon d={Icons.arrowUpRight} size={14} color="var(--expense)" />
             </div>
             <div>
-              <div style={{ fontSize: 11, color: "rgba(31,35,48,0.35)", fontWeight: 600 }}>지출</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#F24565", fontVariantNumeric: "tabular-nums" }}>{formatNum(summary.expense)}</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>지출</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--expense)", fontVariantNumeric: "tabular-nums" }}>{formatNum(summary.expense)}</div>
             </div>
           </div>
           <div style={{ paddingLeft: 10, borderLeft: "1px solid rgba(0,0,0,0.05)", display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 8, background: summary.balance >= 0 ? "rgba(45,199,176,0.12)" : "rgba(242,69,101,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon d={Icons.wallet} size={14} color={summary.balance >= 0 ? "#2DC7B0" : "#F24565"} />
+            <div style={{ width: 26, height: 26, borderRadius: 8, background: summary.balance >= 0 ? "var(--accent-soft)" : "rgba(242,69,101,0.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon d={Icons.wallet} size={14} color={summary.balance >= 0 ? "var(--accent)" : "var(--expense)"} />
             </div>
             <div>
-              <div style={{ fontSize: 11, color: "rgba(31,35,48,0.35)", fontWeight: 600 }}>잔액</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: summary.balance >= 0 ? "#2DC7B0" : "#F24565", fontVariantNumeric: "tabular-nums" }}>{formatNum(summary.balance)}</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>잔액</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: summary.balance >= 0 ? "var(--accent)" : "var(--expense)", fontVariantNumeric: "tabular-nums" }}>{formatNum(summary.balance)}</div>
             </div>
           </div>
         </div>
@@ -912,12 +922,12 @@ export default function BudgetTracker() {
             </div>
             <BudgetBar spent={summary.expense} budget={totalBudget} />
             <div style={{ fontSize: 13, color: "rgba(31,35,48,0.58)", marginTop: 8 }}>
-              잔여 예산: <span style={{ color: remainingBudget >= 0 ? "#00B87A" : "#F24565", fontWeight: 600 }}>
+              잔여 예산: <span style={{ color: remainingBudget >= 0 ? "var(--income)" : "var(--expense)", fontWeight: 600 }}>
                 {formatNum(remainingBudget)}원
               </span>
               {remainingDays > 0 && remainingBudget > 0 && (
                 <span style={{ marginLeft: 8, paddingLeft: 8, borderLeft: "1px solid rgba(0,0,0,0.06)" }}>
-                  하루 <span style={{ color: "#2DC7B0", fontWeight: 600 }}>{formatNum(dailyBudget)}원</span> 사용 가능
+                  하루 <span style={{ color: "var(--accent)", fontWeight: 600 }}>{formatNum(dailyBudget)}원</span> 사용 가능
                 </span>
               )}
             </div>
@@ -932,8 +942,8 @@ export default function BudgetTracker() {
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               {selectedDate && (
                 <div style={{ display: "flex", gap: 10, fontSize: 13 }}>
-                  {dayInc > 0 && <span style={{ color: "#00B87A", fontWeight: 600 }}>+{formatNum(dayInc)}</span>}
-                  {dayExp > 0 && <span style={{ color: "#F24565", fontWeight: 600 }}>-{formatNum(dayExp)}</span>}
+                  {dayInc > 0 && <span style={{ color: "var(--income)", fontWeight: 600 }}>+{formatNum(dayInc)}</span>}
+                  {dayExp > 0 && <span style={{ color: "var(--expense)", fontWeight: 600 }}>-{formatNum(dayExp)}</span>}
                 </div>
               )}
               {selectedDate
@@ -1146,6 +1156,43 @@ export default function BudgetTracker() {
     <>
       <div style={S.header}>
         <span style={{ fontSize: 20, fontWeight: 700 }}>설정</span>
+      </div>
+      <div style={S.card}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>화면 모드</div>
+            <div style={{ fontSize: 12, color: "var(--text-sub)", marginTop: 2 }}>
+              {themeMode === "dark" ? "다크 모드" : "라이트 모드"}
+            </div>
+          </div>
+          <button
+            onClick={() => setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))}
+            style={{
+              width: 56,
+              height: 30,
+              borderRadius: 15,
+              background: themeMode === "dark" ? "#2DC7B0" : "rgba(45,199,176,0.35)",
+              border: "none",
+              cursor: "pointer",
+              position: "relative",
+              transition: "background .2s",
+            }}
+          >
+            <span
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                background: "#fff",
+                position: "absolute",
+                top: 3,
+                left: themeMode === "dark" ? 29 : 3,
+                transition: "left .2s",
+                display: "inline-block",
+              }}
+            />
+          </button>
+        </div>
       </div>
       <div style={S.card}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
