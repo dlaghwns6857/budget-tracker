@@ -60,6 +60,7 @@ const STORAGE_KEYS = {
   budgets: "budgets",
   categoryColors: "cat-colors"
 };
+const THEME_KEY = "ui-theme-mode";
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 // [BUG FIX] crypto.randomUUID 사용으로 ID 충돌 방지
@@ -145,24 +146,24 @@ const Icons = {
 
 // ─── Styles ──────────────────────────────────────────────────────────
 const S = {
-  root: { fontFamily: "'Pretendard Variable', 'Apple SD Gothic Neo', -apple-system, sans-serif", background: "#FFFFFF", color: "#1F2330", minHeight: "100vh", maxWidth: 520, margin: "0 auto", padding: "0 0 100px", position: "relative", lineHeight: 1.5 },
-  nav: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 520, background: "rgba(255,255,255,0.96)", backdropFilter: "blur(20px) saturate(180%)", borderTop: "1px solid rgba(0,0,0,0.06)", display: "flex", zIndex: 100, padding: "6px 0 env(safe-area-inset-bottom, 8px)" },
-  navBtn: (active) => ({ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "8px 4px 4px", background: "none", border: "none", color: active ? "#2DC7B0" : "rgba(31,35,48,0.38)", fontSize: 10, fontWeight: 500, cursor: "pointer", transition: "color .2s" }),
+  root: { fontFamily: "'Pretendard Variable', 'Apple SD Gothic Neo', -apple-system, sans-serif", background: "var(--bg-page)", color: "var(--text)", minHeight: "100vh", maxWidth: 520, margin: "0 auto", padding: "0 0 100px", position: "relative", lineHeight: 1.5 },
+  nav: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 520, background: "var(--nav-bg)", backdropFilter: "blur(20px) saturate(180%)", borderTop: "1px solid var(--border-soft)", display: "flex", zIndex: 100, padding: "6px 0 env(safe-area-inset-bottom, 8px)" },
+  navBtn: (active) => ({ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "8px 4px 4px", background: "none", border: "none", color: active ? "#2DC7B0" : "var(--text-muted)", fontSize: 10, fontWeight: 500, cursor: "pointer", transition: "color .2s" }),
   header: { padding: "20px 20px 0", paddingTop: "env(safe-area-inset-top)", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  title: { fontSize: 26, fontWeight: 800, letterSpacing: -0.8, color: "#1F2330" },
-  card: { background: "#FFFFFF", borderRadius: 16, padding: "18px 20px", margin: "12px 20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" },
-  cardTitle: { fontSize: 13, color: "rgba(31,35,48,0.58)", fontWeight: 600, marginBottom: 8, letterSpacing: -0.2 },
+  title: { fontSize: 26, fontWeight: 800, letterSpacing: -0.8, color: "var(--text)" },
+  card: { background: "var(--bg-surface)", borderRadius: 16, padding: "18px 20px", margin: "12px 20px", border: "1px solid var(--border-soft)", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" },
+  cardTitle: { fontSize: 13, color: "var(--text-sub)", fontWeight: 600, marginBottom: 8, letterSpacing: -0.2 },
   btn: (bg = "#2DC7B0") => ({ background: bg, color: "#fff", border: "none", borderRadius: 12, padding: "12px 20px", fontSize: 15, fontWeight: 600, cursor: "pointer", width: "100%", transition: "opacity .2s" }),
   btnSm: (bg = "rgba(45,199,176,0.1)", c = "#2DC7B0") => ({ background: bg, color: c, border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all .2s" }),
-  btnGhost: { background: "none", border: "none", color: "rgba(31,35,48,0.38)", cursor: "pointer", padding: 6, display: "flex", alignItems: "center" },
-  input: { width: "100%", padding: "12px 14px", background: "#F6F7F9", border: "1px solid rgba(0,0,0,0.06)", borderRadius: 10, color: "#1F2330", fontSize: 15, outline: "none", boxSizing: "border-box", transition: "border-color .2s" },
-  select: { width: "100%", padding: "12px 14px", background: "#F6F7F9", border: "1px solid rgba(0,0,0,0.06)", borderRadius: 10, color: "#1F2330", fontSize: 15, outline: "none", boxSizing: "border-box", appearance: "none" },
-  label: { fontSize: 13, color: "rgba(31,35,48,0.58)", fontWeight: 600, marginBottom: 6, display: "block" },
-  tag: (bg) => ({ display: "inline-block", padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600, background: bg || "rgba(45,199,176,0.1)", color: "#1F2330" }),
-  divider: { height: 1, background: "rgba(0,0,0,0.05)", margin: "12px 0" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" },
-  modalContent: { background: "#FFFFFF", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 520, maxHeight: "85vh", overflow: "auto", padding: "24px 20px 40px" },
-  empty: { textAlign: "center", padding: "40px 20px", color: "rgba(31,35,48,0.35)", fontSize: 14 },
+  btnGhost: { background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 6, display: "flex", alignItems: "center" },
+  input: { width: "100%", padding: "12px 14px", background: "var(--input-bg)", border: "1px solid var(--border-soft)", borderRadius: 10, color: "var(--text)", fontSize: 15, outline: "none", boxSizing: "border-box", transition: "border-color .2s" },
+  select: { width: "100%", padding: "12px 14px", background: "var(--input-bg)", border: "1px solid var(--border-soft)", borderRadius: 10, color: "var(--text)", fontSize: 15, outline: "none", boxSizing: "border-box", appearance: "none" },
+  label: { fontSize: 13, color: "var(--text-sub)", fontWeight: 600, marginBottom: 6, display: "block" },
+  tag: (bg) => ({ display: "inline-block", padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600, background: bg || "rgba(45,199,176,0.1)", color: "var(--text)" }),
+  divider: { height: 1, background: "var(--border-soft)", margin: "12px 0" },
+  modalOverlay: { position: "fixed", inset: 0, background: "var(--overlay-bg)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" },
+  modalContent: { background: "var(--bg-surface)", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 520, maxHeight: "85vh", overflow: "auto", padding: "24px 20px 40px" },
+  empty: { textAlign: "center", padding: "40px 20px", color: "var(--text-muted)", fontSize: 14 },
 };
 
 // ─── Components ──────────────────────────────────────────────────────
@@ -452,6 +453,10 @@ function Toast({ toast, onHide }) {
 
 // ─── Main App ────────────────────────────────────────────────────────
 export default function BudgetTracker() {
+  const [themeMode, setThemeMode] = useState(() => {
+    if (typeof window === "undefined") return "light";
+    return localStorage.getItem(THEME_KEY) || "light";
+  });
   const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState("home");
   const [month, setMonth] = useState(getYM(today()));
@@ -501,6 +506,11 @@ export default function BudgetTracker() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [isSubmittingTx, setIsSubmittingTx] = useState(false);
   const amountInputRef = useRef(null);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", themeMode);
+    localStorage.setItem(THEME_KEY, themeMode);
+  }, [themeMode]);
 
   // ── Load Data ──
   useEffect(() => {
@@ -1146,6 +1156,43 @@ export default function BudgetTracker() {
     <>
       <div style={S.header}>
         <span style={{ fontSize: 20, fontWeight: 700 }}>설정</span>
+      </div>
+      <div style={S.card}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>화면 모드</div>
+            <div style={{ fontSize: 12, color: "var(--text-sub)", marginTop: 2 }}>
+              {themeMode === "dark" ? "다크 모드" : "라이트 모드"}
+            </div>
+          </div>
+          <button
+            onClick={() => setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))}
+            style={{
+              width: 56,
+              height: 30,
+              borderRadius: 15,
+              background: themeMode === "dark" ? "#2DC7B0" : "rgba(45,199,176,0.35)",
+              border: "none",
+              cursor: "pointer",
+              position: "relative",
+              transition: "background .2s",
+            }}
+          >
+            <span
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                background: "#fff",
+                position: "absolute",
+                top: 3,
+                left: themeMode === "dark" ? 29 : 3,
+                transition: "left .2s",
+                display: "inline-block",
+              }}
+            />
+          </button>
+        </div>
       </div>
       <div style={S.card}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
