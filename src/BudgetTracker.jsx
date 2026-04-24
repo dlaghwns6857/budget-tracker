@@ -27,6 +27,31 @@ const CATEGORY_COLOR_PALETTE = [
   "#2A9D8F", "#E76F51", "#6C9CFF", "#F28482", "#84A59D", "#F6BD60"
 ];
 
+const PASTEL_CATEGORIES = {
+  "식비": "#FFA8B3",
+  "카페/간식": "#FFC996",
+  "교통/차량": "#8FD9D0",
+  "주거/관리비": "#A3C8E8",
+  "통신": "#96D4A8",
+  "구독서비스": "#C9A3E0",
+  "의료/건강": "#96D4BC",
+  "쇼핑/뷰티": "#F5DC87",
+  "문화/여가": "#BFA8E0",
+  "교육": "#A3C0E0",
+  "보험/세금": "#96D4AE",
+  "경조사/선물": "#FFA8BC",
+  "반려동물": "#D4B088",
+  "생활용품": "#FFBE8A",
+  "기타": "#B5B5E0",
+  "월급": "#96D4AE",
+  "부수입": "#9BDAB0",
+  "용돈": "#8FD9D0",
+  "상여금": "#FFC996",
+  "금융소득": "#A3C8E8",
+  "중고거래": "#C9A3E0",
+  "기타수입": "#FFBE8A",
+};
+
 const STORAGE_KEYS = {
   transactions: "transactions",
   recurring: "recurring",
@@ -69,6 +94,7 @@ const csvEscape = (v) => `"${String(v).replace(/"/g, '""')}"`;
 
 const getCategoryColor = (name, colors = {}) => {
   if (colors[name]) return colors[name];
+  if (PASTEL_CATEGORIES[name]) return PASTEL_CATEGORIES[name];
   if (CATEGORY_COLORS[name]) return CATEGORY_COLORS[name];
   const hash = Array.from(name).reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return CATEGORY_COLOR_PALETTE[hash % CATEGORY_COLOR_PALETTE.length];
@@ -113,28 +139,30 @@ const Icons = {
   home: "M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z",
   list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
   copy: "M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V8l-4-4H8zM14 2v6h4",
+  arrowDownLeft: "M17 7L7 17M17 17H7V7",
+  arrowUpRight: "M7 17L17 7M7 7h10v10",
 };
 
 // ─── Styles ──────────────────────────────────────────────────────────
 const S = {
-  root: { fontFamily: "'Pretendard Variable', 'Apple SD Gothic Neo', -apple-system, sans-serif", background: "#0A0A0F", color: "#E8E6E3", minHeight: "100vh", maxWidth: 520, margin: "0 auto", padding: "0 0 100px", position: "relative", lineHeight: 1.5 },
-  nav: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 520, background: "rgba(10,10,15,0.92)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", zIndex: 100, padding: "6px 0 env(safe-area-inset-bottom, 8px)" },
-  navBtn: (active) => ({ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "8px 4px 4px", background: "none", border: "none", color: active ? "#6C9CFF" : "#555", fontSize: 10, fontWeight: 500, cursor: "pointer", transition: "color .2s" }),
+  root: { fontFamily: "'Pretendard Variable', 'Apple SD Gothic Neo', -apple-system, sans-serif", background: "#FFFFFF", color: "#1F2330", minHeight: "100vh", maxWidth: 520, margin: "0 auto", padding: "0 0 100px", position: "relative", lineHeight: 1.5 },
+  nav: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 520, background: "rgba(255,255,255,0.96)", backdropFilter: "blur(20px) saturate(180%)", borderTop: "1px solid rgba(0,0,0,0.06)", display: "flex", zIndex: 100, padding: "6px 0 env(safe-area-inset-bottom, 8px)" },
+  navBtn: (active) => ({ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "8px 4px 4px", background: "none", border: "none", color: active ? "#2DC7B0" : "rgba(31,35,48,0.38)", fontSize: 10, fontWeight: 500, cursor: "pointer", transition: "color .2s" }),
   header: { padding: "20px 20px 0", paddingTop: "env(safe-area-inset-top)", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  title: { fontSize: 26, fontWeight: 700, letterSpacing: -0.5, background: "linear-gradient(135deg, #6C9CFF, #B47AFF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
-  card: { background: "rgba(255,255,255,0.04)", borderRadius: 16, padding: "18px 20px", margin: "12px 20px", border: "1px solid rgba(255,255,255,0.06)" },
-  cardTitle: { fontSize: 13, color: "#777", fontWeight: 500, marginBottom: 8, letterSpacing: 0.3 },
-  btn: (bg = "#6C9CFF") => ({ background: bg, color: "#fff", border: "none", borderRadius: 12, padding: "12px 20px", fontSize: 15, fontWeight: 600, cursor: "pointer", width: "100%", transition: "opacity .2s" }),
-  btnSm: (bg = "rgba(108,156,255,0.15)", c = "#6C9CFF") => ({ background: bg, color: c, border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 500, cursor: "pointer", transition: "all .2s" }),
-  btnGhost: { background: "none", border: "none", color: "#888", cursor: "pointer", padding: 6, display: "flex", alignItems: "center" },
-  input: { width: "100%", padding: "12px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#E8E6E3", fontSize: 15, outline: "none", boxSizing: "border-box", transition: "border-color .2s" },
-  select: { width: "100%", padding: "12px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#E8E6E3", fontSize: 15, outline: "none", boxSizing: "border-box", appearance: "none" },
-  label: { fontSize: 13, color: "#999", fontWeight: 500, marginBottom: 6, display: "block" },
-  tag: (bg) => ({ display: "inline-block", padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 500, background: bg || "rgba(108,156,255,0.15)", color: "#fff" }),
-  divider: { height: 1, background: "rgba(255,255,255,0.06)", margin: "12px 0" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" },
-  modalContent: { background: "#16161F", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 520, maxHeight: "85vh", overflow: "auto", padding: "24px 20px 40px" },
-  empty: { textAlign: "center", padding: "40px 20px", color: "#555", fontSize: 14 },
+  title: { fontSize: 26, fontWeight: 800, letterSpacing: -0.8, color: "#1F2330" },
+  card: { background: "#FFFFFF", borderRadius: 16, padding: "18px 20px", margin: "12px 20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" },
+  cardTitle: { fontSize: 13, color: "rgba(31,35,48,0.58)", fontWeight: 600, marginBottom: 8, letterSpacing: -0.2 },
+  btn: (bg = "#2DC7B0") => ({ background: bg, color: "#fff", border: "none", borderRadius: 12, padding: "12px 20px", fontSize: 15, fontWeight: 600, cursor: "pointer", width: "100%", transition: "opacity .2s" }),
+  btnSm: (bg = "rgba(45,199,176,0.1)", c = "#2DC7B0") => ({ background: bg, color: c, border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all .2s" }),
+  btnGhost: { background: "none", border: "none", color: "rgba(31,35,48,0.38)", cursor: "pointer", padding: 6, display: "flex", alignItems: "center" },
+  input: { width: "100%", padding: "12px 14px", background: "#F6F7F9", border: "1px solid rgba(0,0,0,0.06)", borderRadius: 10, color: "#1F2330", fontSize: 15, outline: "none", boxSizing: "border-box", transition: "border-color .2s" },
+  select: { width: "100%", padding: "12px 14px", background: "#F6F7F9", border: "1px solid rgba(0,0,0,0.06)", borderRadius: 10, color: "#1F2330", fontSize: 15, outline: "none", boxSizing: "border-box", appearance: "none" },
+  label: { fontSize: 13, color: "rgba(31,35,48,0.58)", fontWeight: 600, marginBottom: 6, display: "block" },
+  tag: (bg) => ({ display: "inline-block", padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600, background: bg || "rgba(45,199,176,0.1)", color: "#1F2330" }),
+  divider: { height: 1, background: "rgba(0,0,0,0.05)", margin: "12px 0" },
+  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" },
+  modalContent: { background: "#FFFFFF", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 520, maxHeight: "85vh", overflow: "auto", padding: "24px 20px 40px" },
+  empty: { textAlign: "center", padding: "40px 20px", color: "rgba(31,35,48,0.35)", fontSize: 14 },
 };
 
 // ─── Components ──────────────────────────────────────────────────────
@@ -163,19 +191,19 @@ function CatChip({ name, colors }) {
 function TxRow({ tx, colors, onEdit, onDelete }) {
   const isIncome = tx.type === "income";
   return (
-    <div style={{ display: "flex", alignItems: "center", padding: "12px 0", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+    <div style={{ display: "flex", alignItems: "center", padding: "12px 0", gap: 12, borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
           <CatChip name={tx.category} colors={colors} />
-          {tx.isRecurring && <span style={{ fontSize: 11, color: "#B47AFF" }}>반복</span>}
+          {tx.isRecurring && <span style={{ fontSize: 11, color: "rgba(31,35,48,0.35)" }}>반복</span>}
         </div>
-        {tx.memo && <div style={{ fontSize: 13, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.memo}</div>}
+        {tx.memo && <div style={{ fontSize: 13, color: "rgba(31,35,48,0.58)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.memo}</div>}
       </div>
       <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: 16, fontWeight: 600, color: isIncome ? "#2ECC71" : "#FF6B6B", fontVariantNumeric: "tabular-nums" }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: isIncome ? "#00B87A" : "#F24565", fontVariantNumeric: "tabular-nums" }}>
           {isIncome ? "+" : "-"}{formatNum(tx.amount)}원
         </div>
-        <div style={{ fontSize: 11, color: "#666" }}>{tx.date.slice(5)}</div>
+        <div style={{ fontSize: 11, color: "rgba(31,35,48,0.35)" }}>{tx.date.slice(5)}</div>
       </div>
       <div style={{ display: "flex", gap: 4 }}>
         <button onClick={() => onEdit(tx)} style={S.btnGhost}><Icon d={Icons.edit} size={15} color="#666" /></button>
@@ -209,14 +237,14 @@ function DonutChart({ data }) {
           );
         })}
         <text x={cx} y={cy - 6} textAnchor="middle" fill="#999" fontSize={11}>총 지출</text>
-        <text x={cx} y={cy + 14} textAnchor="middle" fill="#E8E6E3" fontSize={16} fontWeight="700">{formatNum(total)}</text>
+        <text x={cx} y={cy + 14} textAnchor="middle" fill="#1F2330" fontSize={16} fontWeight="700">{formatNum(total)}</text>
       </svg>
       <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13 }}>
         {data.slice(0, 6).map((d, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: d.color, flexShrink: 0 }} />
             <span style={{ color: d.color, fontWeight: 600 }}>{d.name}</span>
-            <span style={{ color: "#E8E6E3", fontWeight: 600, marginLeft: "auto" }}>{Math.round(d.value / total * 100)}%</span>
+            <span style={{ color: "#1F2330", fontWeight: 600, marginLeft: "auto" }}>{Math.round(d.value / total * 100)}%</span>
           </div>
         ))}
       </div>
@@ -248,16 +276,16 @@ function TrendChart({ transactions }) {
               <div style={{ flex: 1, background: "rgba(46,204,113,0.5)", borderRadius: "3px 3px 0 0", height: `${d.income / maxVal * 100}%`, minHeight: d.income > 0 ? 3 : 0, transition: "height .5s" }} />
               <div style={{ flex: 1, background: "rgba(255,107,107,0.5)", borderRadius: "3px 3px 0 0", height: `${d.expense / maxVal * 100}%`, minHeight: d.expense > 0 ? 3 : 0, transition: "height .5s" }} />
             </div>
-            <span style={{ fontSize: 10, color: "#666", marginTop: 4, whiteSpace: "nowrap" }}>{d.label}</span>
+            <span style={{ fontSize: 10, color: "rgba(31,35,48,0.35)", marginTop: 4, whiteSpace: "nowrap" }}>{d.label}</span>
           </div>
         ))}
       </div>
       <div style={{ display: "flex", gap: 16, marginTop: 10, fontSize: 12 }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#aaa" }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(46,204,113,0.7)", display: "inline-block" }} />수입
+        <span style={{ display: "flex", alignItems: "center", gap: 4, color: "rgba(31,35,48,0.58)" }}>
+          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#00B87A", display: "inline-block" }} />수입
         </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#aaa" }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(255,107,107,0.7)", display: "inline-block" }} />지출
+        <span style={{ display: "flex", alignItems: "center", gap: 4, color: "rgba(31,35,48,0.58)" }}>
+          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#F24565", display: "inline-block" }} />지출
         </span>
       </div>
     </div>
@@ -271,11 +299,11 @@ function BudgetBar({ spent, budget }) {
   return (
     <div style={{ marginTop: 6 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-        <span style={{ color: over ? "#FF6B6B" : "#999" }}>{formatNum(spent)}원 사용</span>
-        <span style={{ color: "#666" }}>{formatNum(budget)}원</span>
+        <span style={{ color: over ? "#F24565" : "rgba(31,35,48,0.58)" }}>{formatNum(spent)}원 사용</span>
+        <span style={{ color: "rgba(31,35,48,0.35)" }}>{formatNum(budget)}원</span>
       </div>
-      <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: over ? "linear-gradient(90deg,#FF6B6B,#FF4757)" : "linear-gradient(90deg,#6C9CFF,#B47AFF)", borderRadius: 3, transition: "width .5s" }} />
+      <div style={{ height: 6, background: "rgba(0,0,0,0.05)", borderRadius: 3, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${pct}%`, background: over ? "linear-gradient(90deg,#F24565,#FF8BA5)" : "linear-gradient(90deg,#4A90E2,#2DC7B0)", borderRadius: 3, transition: "width .5s" }} />
       </div>
     </div>
   );
@@ -310,14 +338,14 @@ function Calendar({ month, transactions, onDateClick, selectedDate }) {
   const dayLabels = ["일", "월", "화", "수", "목", "금", "토"];
 
   return (
-    <div style={{ margin: "12px 20px", background: "rgba(255,255,255,0.04)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+    <div style={{ margin: "12px 20px", background: "#FFFFFF", borderRadius: 16, border: "1px solid rgba(0,0,0,0.05)", overflow: "hidden", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
         {dayLabels.map((l, i) => (
-          <div key={i} style={{ textAlign: "center", padding: "10px 0 8px", fontSize: 11, fontWeight: 600, color: i === 0 ? "#FF6B6B" : i === 6 ? "#6C9CFF" : "#666" }}>{l}</div>
+          <div key={i} style={{ textAlign: "center", padding: "10px 0 8px", fontSize: 11, fontWeight: 600, color: i === 0 ? "#F24565" : i === 6 ? "#4A90E2" : "rgba(31,35,48,0.35)" }}>{l}</div>
         ))}
       </div>
       {weeks.map((wk, wi) => (
-        <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: wi < weeks.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+        <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: wi < weeks.length - 1 ? "1px solid rgba(0,0,0,0.05)" : "none" }}>
           {wk.map((d, di) => {
             if (d === null) return <div key={di} />;
             const dateStr = `${month}-${String(d).padStart(2, "0")}`;
@@ -329,22 +357,22 @@ function Calendar({ month, transactions, onDateClick, selectedDate }) {
               <div key={di} onClick={() => onDateClick && onDateClick(dateStr)}
                 style={{
                   padding: "8px 2px 10px", textAlign: "center", cursor: "pointer",
-                  background: isSelected ? "rgba(108,156,255,0.18)" : isToday ? "rgba(108,156,255,0.08)" : "transparent",
+                  background: isSelected ? "rgba(45,199,176,0.12)" : isToday ? "rgba(45,199,176,0.06)" : "transparent",
                   borderRadius: 0, minHeight: 72, transition: "background .15s", position: "relative",
-                  borderLeft: isSelected ? "2px solid #6C9CFF" : "2px solid transparent",
+                  borderLeft: isSelected ? "2px solid #2DC7B0" : "2px solid transparent",
                 }}>
                 <div style={{
                   fontSize: 13, fontWeight: isToday || isSelected ? 700 : 400, marginBottom: 4,
-                  color: isSelected ? "#6C9CFF" : isToday ? "#6C9CFF" : dayOfWeek === 0 ? "#FF6B6B" : dayOfWeek === 6 ? "#6C9CFF" : "#ccc",
+                  color: isSelected ? "#2DC7B0" : isToday ? "#2DC7B0" : dayOfWeek === 0 ? "#F24565" : dayOfWeek === 6 ? "#4A90E2" : "rgba(31,35,48,0.58)",
                 }}>
                   {isToday
-                    ? <span style={{ background: "#6C9CFF", color: "#0A0A0F", borderRadius: "50%", width: 22, height: 22, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>{d}</span>
+                    ? <span style={{ background: "#2DC7B0", color: "#FFFFFF", borderRadius: "50%", width: 22, height: 22, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>{d}</span>
                     : d}
                 </div>
                 {data && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "center" }}>
-                    {data.income > 0 && <span style={{ fontSize: 10, color: "#2ECC71", fontWeight: 600, lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>+{formatNum(data.income)}</span>}
-                    {data.expense > 0 && <span style={{ fontSize: 10, color: "#FF6B6B", fontWeight: 600, lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>-{formatNum(data.expense)}</span>}
+                    {data.income > 0 && <span style={{ fontSize: 10, color: "#00B87A", fontWeight: 600, lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>+{formatNum(data.income)}</span>}
+                    {data.expense > 0 && <span style={{ fontSize: 10, color: "#F24565", fontWeight: 600, lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>-{formatNum(data.expense)}</span>}
                   </div>
                 )}
               </div>
@@ -406,15 +434,15 @@ function Toast({ toast, onHide }) {
   return (
     <div style={{
       position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)",
-      background: "#2A2A35", border: "1px solid rgba(255,255,255,0.1)",
+      background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.06)",
       borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center",
       gap: 12, zIndex: 300, maxWidth: 320, width: "calc(100% - 40px)",
       boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
     }}>
-      <span style={{ flex: 1, fontSize: 14, color: "#ccc" }}>{toast.message}</span>
+      <span style={{ flex: 1, fontSize: 14, color: "#1F2330" }}>{toast.message}</span>
       {toast.undo && (
         <button onClick={() => { toast.undo(); onHide(); }}
-          style={{ ...S.btnSm("rgba(108,156,255,0.2)", "#6C9CFF"), flexShrink: 0 }}>
+          style={{ ...S.btnSm("rgba(45,199,176,0.1)", "#2DC7B0"), flexShrink: 0 }}>
           실행취소
         </button>
       )}
@@ -804,7 +832,7 @@ export default function BudgetTracker() {
   // ── Loading ──
   if (!loaded) return (
     <div style={{ ...S.root, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ color: "#666", fontSize: 15 }}>데이터 불러오는 중...</div>
+      <div style={{ color: "rgba(31,35,48,0.58)", fontSize: 15 }}>데이터 불러오는 중...</div>
     </div>
   );
 
@@ -844,17 +872,34 @@ export default function BudgetTracker() {
           <MonthPicker value={month} onChange={(m) => { setMonth(m); setSelectedDate(null); }} />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, margin: "16px 20px 0" }}>
-          {[
-            { label: "수입", value: summary.income, color: "#2ECC71" },
-            { label: "지출", value: summary.expense, color: "#FF6B6B" },
-            { label: "잔액", value: summary.balance, color: summary.balance >= 0 ? "#6C9CFF" : "#FF4757" },
-          ].map((d, i) => (
-            <div key={i} style={{ ...S.card, margin: 0, textAlign: "center", padding: 14 }}>
-              <div style={{ fontSize: 12, color: "#777", marginBottom: 4 }}>{d.label}</div>
-              <div style={{ fontSize: 17, fontWeight: 700, color: d.color, fontVariantNumeric: "tabular-nums" }}>{formatNum(d.value)}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px", borderBottom: "1px solid rgba(0,0,0,0.05)", marginBottom: 4 }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 26, height: 26, borderRadius: 8, background: "rgba(0,184,122,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon d={Icons.arrowDownLeft} size={14} color="#00B87A" />
             </div>
-          ))}
+            <div>
+              <div style={{ fontSize: 11, color: "rgba(31,35,48,0.35)", fontWeight: 600 }}>수입</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#00B87A", fontVariantNumeric: "tabular-nums" }}>{formatNum(summary.income)}</div>
+            </div>
+          </div>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 26, height: 26, borderRadius: 8, background: "rgba(242,69,101,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon d={Icons.arrowUpRight} size={14} color="#F24565" />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: "rgba(31,35,48,0.35)", fontWeight: 600 }}>지출</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#F24565", fontVariantNumeric: "tabular-nums" }}>{formatNum(summary.expense)}</div>
+            </div>
+          </div>
+          <div style={{ paddingLeft: 10, borderLeft: "1px solid rgba(0,0,0,0.05)", display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 26, height: 26, borderRadius: 8, background: summary.balance >= 0 ? "rgba(45,199,176,0.12)" : "rgba(242,69,101,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon d={Icons.wallet} size={14} color={summary.balance >= 0 ? "#2DC7B0" : "#F24565"} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: "rgba(31,35,48,0.35)", fontWeight: 600 }}>잔액</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: summary.balance >= 0 ? "#2DC7B0" : "#F24565", fontVariantNumeric: "tabular-nums" }}>{formatNum(summary.balance)}</div>
+            </div>
+          </div>
         </div>
 
         <Calendar month={month} transactions={monthTxs} selectedDate={selectedDate} onDateClick={(d) => setSelectedDate(selectedDate === d ? null : d)} />
@@ -866,13 +911,13 @@ export default function BudgetTracker() {
               <button onClick={() => setShowBudgetModal(true)} style={S.btnSm()}>설정</button>
             </div>
             <BudgetBar spent={summary.expense} budget={totalBudget} />
-            <div style={{ fontSize: 13, color: "#888", marginTop: 8 }}>
-              잔여 예산: <span style={{ color: remainingBudget >= 0 ? "#2ECC71" : "#FF6B6B", fontWeight: 600 }}>
+            <div style={{ fontSize: 13, color: "rgba(31,35,48,0.58)", marginTop: 8 }}>
+              잔여 예산: <span style={{ color: remainingBudget >= 0 ? "#00B87A" : "#F24565", fontWeight: 600 }}>
                 {formatNum(remainingBudget)}원
               </span>
               {remainingDays > 0 && remainingBudget > 0 && (
-                <span style={{ marginLeft: 8, paddingLeft: 8, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                  하루 <span style={{ color: "#6C9CFF", fontWeight: 600 }}>{formatNum(dailyBudget)}원</span> 사용 가능
+                <span style={{ marginLeft: 8, paddingLeft: 8, borderLeft: "1px solid rgba(0,0,0,0.06)" }}>
+                  하루 <span style={{ color: "#2DC7B0", fontWeight: 600 }}>{formatNum(dailyBudget)}원</span> 사용 가능
                 </span>
               )}
             </div>
@@ -887,13 +932,13 @@ export default function BudgetTracker() {
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               {selectedDate && (
                 <div style={{ display: "flex", gap: 10, fontSize: 13 }}>
-                  {dayInc > 0 && <span style={{ color: "#2ECC71", fontWeight: 600 }}>+{formatNum(dayInc)}</span>}
-                  {dayExp > 0 && <span style={{ color: "#FF6B6B", fontWeight: 600 }}>-{formatNum(dayExp)}</span>}
+                  {dayInc > 0 && <span style={{ color: "#00B87A", fontWeight: 600 }}>+{formatNum(dayInc)}</span>}
+                  {dayExp > 0 && <span style={{ color: "#F24565", fontWeight: 600 }}>-{formatNum(dayExp)}</span>}
                 </div>
               )}
               {selectedDate
-                ? <button onClick={() => setSelectedDate(null)} style={{ ...S.btnGhost, fontSize: 12, color: "#888" }}>전체보기</button>
-                : <button onClick={() => setTab("list")} style={{ ...S.btnGhost, fontSize: 13, color: "#6C9CFF" }}>전체보기</button>
+                ? <button onClick={() => setSelectedDate(null)} style={{ ...S.btnGhost, fontSize: 12, color: "rgba(31,35,48,0.58)" }}>전체보기</button>
+                : <button onClick={() => setTab("list")} style={{ ...S.btnGhost, fontSize: 13, color: "#2DC7B0" }}>전체보기</button>
               }
             </div>
           </div>
@@ -903,7 +948,7 @@ export default function BudgetTracker() {
           }
           {selectedDate && (
             <button onClick={() => openAddTx(selectedDate)}
-              style={{ ...S.btnSm("rgba(108,156,255,0.12)", "#6C9CFF"), marginTop: 8, width: "100%", padding: "8px 0", textAlign: "center" }}>
+              style={{ ...S.btnSm("rgba(45,199,176,0.1)", "#2DC7B0"), marginTop: 8, width: "100%", padding: "8px 0", textAlign: "center" }}>
               이 날짜에 추가
             </button>
           )}
@@ -912,7 +957,7 @@ export default function BudgetTracker() {
         <div style={S.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <span style={S.cardTitle}>다가오는 고정비</span>
-            <span style={{ fontSize: 12, color: "#888" }}>
+            <span style={{ fontSize: 12, color: "rgba(31,35,48,0.58)" }}>
               {upcomingRecurringExpenses.length > 0 ? `${formatNum(upcomingRecurringTotal)}원 예정` : month < getYM(today()) ? "지난 달" : "예정 없음"}
             </span>
           </div>
@@ -924,17 +969,17 @@ export default function BudgetTracker() {
             upcomingRecurringExpenses.slice(0, 5).map((item) => {
               const dueLabel = item.diffDays <= 0 ? "오늘" : `D-${item.diffDays}`;
               return (
-                <div key={`${item.id}-${item.scheduledDate}`} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <div key={`${item.id}-${item.scheduledDate}`} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                       <CatChip name={item.category} colors={catColors} />
-                      <span style={{ fontSize: 12, color: "#888" }}>{item.scheduledDate.slice(5)} · {dueLabel}</span>
+                      <span style={{ fontSize: 12, color: "rgba(31,35,48,0.58)" }}>{item.scheduledDate.slice(5)} · {dueLabel}</span>
                     </div>
-                    <div style={{ fontSize: 13, color: "#AAA", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ fontSize: 13, color: "rgba(31,35,48,0.58)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {item.memo || "고정비"}
                     </div>
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#FF6B6B", flexShrink: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#F24565", flexShrink: 0 }}>
                     -{formatNum(item.amount)}원
                   </div>
                 </div>
@@ -942,7 +987,7 @@ export default function BudgetTracker() {
             })
           )}
           {upcomingRecurringExpenses.length > 5 && (
-            <div style={{ fontSize: 12, color: "#777", marginTop: 10 }}>
+            <div style={{ fontSize: 12, color: "rgba(31,35,48,0.35)", marginTop: 10 }}>
               나머지 {upcomingRecurringExpenses.length - 5}건도 이번 달 예정돼 있어요.
             </div>
           )}
@@ -957,7 +1002,7 @@ export default function BudgetTracker() {
         )}
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "0 20px" }}>
-          <button onClick={openAddTx} style={S.btn("#6C9CFF")}>
+          <button onClick={openAddTx} style={S.btn("#2DC7B0")}>
             <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
               <Icon d={Icons.plus} size={18} /> 내역 추가
             </span>
@@ -1005,7 +1050,7 @@ export default function BudgetTracker() {
         <input style={S.input} type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
         <input style={S.input} type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
         {(searchQ || filterType !== "all" || filterCategory !== "all" || filterRecurring !== "all" || dateFrom || dateTo || minAmt || maxAmt) && (
-          <button onClick={clearListFilters} style={{ ...S.btnSm("rgba(255,255,255,0.06)", "#AAA"), padding: "12px 14px", whiteSpace: "nowrap" }}>
+          <button onClick={clearListFilters} style={{ ...S.btnSm("rgba(31,35,48,0.08)", "rgba(31,35,48,0.58)"), padding: "12px 14px", whiteSpace: "nowrap" }}>
             초기화
           </button>
         )}
@@ -1016,19 +1061,19 @@ export default function BudgetTracker() {
           style={{ ...S.input, fontSize: 13, padding: "8px 10px" }}
           value={minAmt} onChange={setMinAmt}
         />
-        <span style={{ color: "#555", flexShrink: 0, fontSize: 13 }}>~</span>
+        <span style={{ color: "rgba(31,35,48,0.35)", flexShrink: 0, fontSize: 13 }}>~</span>
         <AmountInput
           style={{ ...S.input, fontSize: 13, padding: "8px 10px" }}
           value={maxAmt} onChange={setMaxAmt}
         />
-        <span style={{ color: "#555", flexShrink: 0, fontSize: 13 }}>원</span>
+        <span style={{ color: "rgba(31,35,48,0.35)", flexShrink: 0, fontSize: 13 }}>원</span>
         {(minAmt || maxAmt) && (
           <button onClick={() => { setMinAmt(""); setMaxAmt(""); }} style={{ ...S.btnGhost, flexShrink: 0 }}>
             <Icon d={Icons.x} size={14} color="#888" />
           </button>
         )}
       </div>
-      <div style={{ padding: "10px 20px 0", fontSize: 12, color: "#777" }}>
+      <div style={{ padding: "10px 20px 0", fontSize: 12, color: "rgba(31,35,48,0.35)" }}>
         필터 결과 {filteredTxs.length}건
       </div>
       <div style={{ padding: "0 20px" }}>
@@ -1086,9 +1131,9 @@ export default function BudgetTracker() {
           }
         </div>
         <div style={{ padding: "0 20px" }}>
-          <button onClick={exportCSV} style={S.btn("rgba(108,156,255,0.2)")}>
-            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#6C9CFF" }}>
-              <Icon d={Icons.download} size={18} color="#6C9CFF" /> CSV 내보내기
+          <button onClick={exportCSV} style={S.btn("rgba(45,199,176,0.12)")}>
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#2DC7B0" }}>
+              <Icon d={Icons.download} size={18} color="#2DC7B0" /> CSV 내보내기
             </span>
           </button>
         </div>
@@ -1110,16 +1155,16 @@ export default function BudgetTracker() {
         {recurring.length === 0
           ? <div style={S.empty}>등록된 고정비가 없어요</div>
           : recurring.map(r => (
-            <div key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+            <div key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <CatChip name={r.category} colors={catColors} />
-                  <span style={{ fontSize: 12, color: "#888" }}>매월 {r.day}일</span>
+                  <span style={{ fontSize: 12, color: "rgba(31,35,48,0.58)" }}>매월 {r.day}일</span>
                 </div>
-                {r.memo && <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>{r.memo}</div>}
+                {r.memo && <div style={{ fontSize: 12, color: "rgba(31,35,48,0.58)", marginTop: 4 }}>{r.memo}</div>}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 15, fontWeight: 600, color: r.type === "income" ? "#2ECC71" : "#FF6B6B" }}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: r.type === "income" ? "#00B87A" : "#F24565" }}>
                   {r.type === "income" ? "+" : "-"}{formatNum(r.amount)}원
                 </span>
                 <button onClick={() => openEditRec(r)} style={S.btnGhost}><Icon d={Icons.edit} size={15} color="#666" /></button>
@@ -1140,11 +1185,11 @@ export default function BudgetTracker() {
                 saveColors({ ...catColors, ...CATEGORY_COLORS });
                 setToast({ message: "필수 카테고리가 추가/복구되었어요" });
               }
-            }} style={S.btnSm("rgba(255,255,255,0.06)", "#aaa")}>기본 복구</button>
+            }} style={S.btnSm("rgba(31,35,48,0.08)", "rgba(31,35,48,0.58)")}>기본 복구</button>
             <button onClick={() => setShowCatModal(true)} style={S.btnSm()}>추가</button>
           </div>
         </div>
-        <div style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>지출</div>
+        <div style={{ fontSize: 13, color: "rgba(31,35,48,0.58)", marginBottom: 8 }}>지출</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
           {expCats.map(c => (
             <div key={c} style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -1157,7 +1202,7 @@ export default function BudgetTracker() {
             </div>
           ))}
         </div>
-        <div style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>수입</div>
+        <div style={{ fontSize: 13, color: "rgba(31,35,48,0.58)", marginBottom: 8 }}>수입</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {incCats.map(c => (
             <div key={c} style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -1179,7 +1224,7 @@ export default function BudgetTracker() {
         {Object.keys(monthBudget).length === 0
           ? <div style={S.empty}>설정된 예산이 없어요</div>
           : Object.entries(monthBudget).map(([cat, amt]) => (
-            <div key={cat} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+            <div key={cat} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
               <CatChip name={cat} colors={catColors} />
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 14, fontWeight: 600 }}>{formatNum(amt)}원</span>
@@ -1192,10 +1237,10 @@ export default function BudgetTracker() {
       </div>
       {/* [NEW] 데이터 초기화 */}
       <div style={S.card}>
-        <span style={{ ...S.cardTitle, color: "#FF6B6B" }}>위험 구역</span>
-        <button onClick={resetAllData} style={{ ...S.btn("rgba(255,107,107,0.12)"), color: "#FF6B6B" }}>
+        <span style={{ ...S.cardTitle, color: "#F24565" }}>위험 구역</span>
+        <button onClick={resetAllData} style={{ ...S.btn("rgba(242,69,101,0.10)"), color: "#F24565" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-            <Icon d={Icons.trash} size={16} color="#FF6B6B" /> 거래 내역 초기화
+            <Icon d={Icons.trash} size={16} color="#F24565" /> 거래 내역 초기화
           </span>
         </button>
       </div>
@@ -1220,7 +1265,7 @@ export default function BudgetTracker() {
           { id: "settings", icon: Icons.settings, label: "설정" },
         ].map(n => (
           <button key={n.id} onClick={() => setTab(n.id)} style={S.navBtn(tab === n.id)}>
-            <Icon d={n.icon} size={22} color={tab === n.id ? "#6C9CFF" : "#555"} />
+            <Icon d={n.icon} size={22} color={tab === n.id ? "#2DC7B0" : "rgba(31,35,48,0.38)"} />
             {n.label}
           </button>
         ))}
@@ -1234,9 +1279,9 @@ export default function BudgetTracker() {
               onClick={() => openAddTx(tab === "home" && selectedDate ? selectedDate : today())}
               style={{
                 pointerEvents: "auto", width: 56, height: 56, flexShrink: 0,
-                background: "#6C9CFF", borderRadius: 18, border: "none", color: "#fff",
+                background: "#2DC7B0", borderRadius: 18, border: "none", color: "#fff",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 6px 20px rgba(108,156,255,0.4)", cursor: "pointer", transition: "transform 0.2s"
+                boxShadow: "0 6px 20px rgba(45,199,176,0.35)", cursor: "pointer", transition: "transform 0.2s"
               }}
             >
               <Icon d={Icons.plus} size={28} />
@@ -1253,8 +1298,8 @@ export default function BudgetTracker() {
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           {["expense", "income"].map(t => (
             <button key={t} onClick={() => { setFType(t); setFCat(""); }} disabled={isSubmittingTx}
-              style={{ ...S.btnSm(fType === t ? (t === "expense" ? "rgba(255,107,107,0.2)" : "rgba(46,204,113,0.2)") : "rgba(255,255,255,0.06)",
-                fType === t ? (t === "expense" ? "#FF6B6B" : "#2ECC71") : "#888"), flex: 1, padding: "10px 0", fontSize: 15, opacity: isSubmittingTx ? 0.6 : 1, cursor: isSubmittingTx ? "not-allowed" : "pointer" }}>
+              style={{ ...S.btnSm(fType === t ? (t === "expense" ? "rgba(242,69,101,0.12)" : "rgba(0,184,122,0.12)") : "rgba(31,35,48,0.06)",
+                fType === t ? (t === "expense" ? "#F24565" : "#00B87A") : "rgba(31,35,48,0.58)"), flex: 1, padding: "10px 0", fontSize: 15, opacity: isSubmittingTx ? 0.6 : 1, cursor: isSubmittingTx ? "not-allowed" : "pointer" }}>
               {t === "expense" ? "지출" : "수입"}
             </button>
           ))}
@@ -1296,7 +1341,7 @@ export default function BudgetTracker() {
             <button
               onClick={() => submitTx({ keepOpen: true })}
               disabled={isSubmittingTx}
-              style={{ ...S.btn("rgba(255,255,255,0.12)"), color: "#E8E6E3", opacity: isSubmittingTx ? 0.7 : 1, cursor: isSubmittingTx ? "not-allowed" : "pointer" }}
+              style={{ ...S.btn("rgba(31,35,48,0.08)"), color: "#1F2330", opacity: isSubmittingTx ? 0.7 : 1, cursor: isSubmittingTx ? "not-allowed" : "pointer" }}
             >
               {isSubmittingTx ? "저장 중..." : "계속입력"}
             </button>
@@ -1309,8 +1354,8 @@ export default function BudgetTracker() {
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           {["expense", "income"].map(t => (
             <button key={t} onClick={() => { setRType(t); setRCat(""); }}
-              style={{ ...S.btnSm(rType === t ? (t === "expense" ? "rgba(255,107,107,0.2)" : "rgba(46,204,113,0.2)") : "rgba(255,255,255,0.06)",
-                rType === t ? (t === "expense" ? "#FF6B6B" : "#2ECC71") : "#888"), flex: 1, padding: "10px 0", fontSize: 15 }}>
+              style={{ ...S.btnSm(rType === t ? (t === "expense" ? "rgba(242,69,101,0.12)" : "rgba(0,184,122,0.12)") : "rgba(31,35,48,0.06)",
+                rType === t ? (t === "expense" ? "#F24565" : "#00B87A") : "rgba(31,35,48,0.58)"), flex: 1, padding: "10px 0", fontSize: 15 }}>
               {t === "expense" ? "지출" : "수입"}
             </button>
           ))}
@@ -1340,8 +1385,8 @@ export default function BudgetTracker() {
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           {["expense", "income"].map(t => (
             <button key={t} onClick={() => setNewCatType(t)}
-              style={{ ...S.btnSm(newCatType === t ? "rgba(108,156,255,0.2)" : "rgba(255,255,255,0.06)",
-                newCatType === t ? "#6C9CFF" : "#888"), flex: 1, padding: "10px 0", fontSize: 15 }}>
+              style={{ ...S.btnSm(newCatType === t ? "rgba(45,199,176,0.12)" : "rgba(31,35,48,0.06)",
+                newCatType === t ? "#2DC7B0" : "rgba(31,35,48,0.58)"), flex: 1, padding: "10px 0", fontSize: 15 }}>
               {t === "expense" ? "지출" : "수입"}
             </button>
           ))}
@@ -1375,7 +1420,7 @@ export default function BudgetTracker() {
         <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
           <button onClick={setBudgetForCat} style={{ ...S.btn(), flex: 2 }}>설정</button>
           <button onClick={copyBudgetFromPrevMonth}
-            style={{ ...S.btnSm("rgba(255,255,255,0.06)", "#aaa"), flex: 1, padding: "12px 0", fontSize: 13 }}>
+            style={{ ...S.btnSm("rgba(31,35,48,0.08)", "rgba(31,35,48,0.58)"), flex: 1, padding: "12px 0", fontSize: 13 }}>
             <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
               <Icon d={Icons.copy} size={13} color="#aaa" /> 전월복사
             </span>
@@ -1383,7 +1428,7 @@ export default function BudgetTracker() {
         </div>
         {Object.keys(monthBudget).length > 0 && (
           <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>설정된 예산</div>
+            <div style={{ fontSize: 13, color: "rgba(31,35,48,0.58)", marginBottom: 8 }}>설정된 예산</div>
             {Object.entries(monthBudget).map(([cat, amt]) => (
               <div key={cat} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}>
                 <CatChip name={cat} colors={catColors} />
