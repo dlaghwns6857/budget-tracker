@@ -9,7 +9,31 @@
     <title>가계부</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { background: #FFFFFF; padding-top: env(safe-area-inset-top); }
+      :root {
+        --bg-page: #ffffff;
+        --bg-surface: #ffffff;
+        --text: #1f2330;
+        --text-sub: rgba(31, 35, 48, 0.58);
+        --text-muted: rgba(31, 35, 48, 0.35);
+        --border-soft: rgba(0, 0, 0, 0.06);
+        --input-bg: #f6f7f9;
+        --nav-bg: rgba(255, 255, 255, 0.96);
+        --overlay-bg: rgba(0, 0, 0, 0.45);
+      }
+
+      [data-theme="dark"] {
+        --bg-page: #0e1220;
+        --bg-surface: #171b2d;
+        --text: #eceef5;
+        --text-sub: rgba(236, 238, 245, 0.72);
+        --text-muted: rgba(236, 238, 245, 0.45);
+        --border-soft: rgba(255, 255, 255, 0.08);
+        --input-bg: rgba(255, 255, 255, 0.08);
+        --nav-bg: rgba(14, 18, 32, 0.92);
+        --overlay-bg: rgba(0, 0, 0, 0.6);
+      }
+
+      body { background: var(--bg-page); color: var(--text); padding-top: env(safe-area-inset-top); }
     </style>
   </head>
   <body>
