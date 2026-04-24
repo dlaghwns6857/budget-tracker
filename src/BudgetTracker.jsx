@@ -339,7 +339,7 @@ function Calendar({ month, transactions, onDateClick, selectedDate }) {
   const dayLabels = ["일", "월", "화", "수", "목", "금", "토"];
 
   return (
-    <div style={{ margin: "12px 20px", background: "#FFFFFF", borderRadius: 16, border: "1px solid rgba(0,0,0,0.05)", overflow: "hidden", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
+    <div style={{ margin: "12px 20px", background: "var(--bg-surface)", borderRadius: 16, border: "1px solid var(--border-soft)", overflow: "hidden", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
         {dayLabels.map((l, i) => (
           <div key={i} style={{ textAlign: "center", padding: "10px 0 8px", fontSize: 11, fontWeight: 600, color: i === 0 ? "#F24565" : i === 6 ? "#4A90E2" : "rgba(31,35,48,0.35)" }}>{l}</div>
@@ -1362,7 +1362,13 @@ export default function BudgetTracker() {
           </select>
         </Field>
         <Field label="날짜">
-          <input style={S.input} type="date" value={fDate} onChange={e => setFDate(e.target.value)} disabled={isSubmittingTx} />
+          <input
+            style={{ ...S.input, minWidth: 0, maxWidth: "100%" }}
+            type="date"
+            value={fDate}
+            onChange={e => setFDate(e.target.value)}
+            disabled={isSubmittingTx}
+          />
         </Field>
         <Field label="메모">
           <input style={S.input} placeholder="메모 (선택)" value={fMemo} onChange={e => setFMemo(e.target.value)} disabled={isSubmittingTx} />
