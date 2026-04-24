@@ -120,7 +120,7 @@ const S = {
   root: { fontFamily: "'Pretendard Variable', 'Apple SD Gothic Neo', -apple-system, sans-serif", background: "#0A0A0F", color: "#E8E6E3", minHeight: "100vh", maxWidth: 520, margin: "0 auto", padding: "0 0 100px", position: "relative", lineHeight: 1.5 },
   nav: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 520, background: "rgba(10,10,15,0.92)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", zIndex: 100, padding: "6px 0 env(safe-area-inset-bottom, 8px)" },
   navBtn: (active) => ({ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "8px 4px 4px", background: "none", border: "none", color: active ? "#6C9CFF" : "#555", fontSize: 10, fontWeight: 500, cursor: "pointer", transition: "color .2s" }),
-  header: { padding: "20px 20px 0", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  header: { padding: "20px 20px 0", paddingTop: "env(safe-area-inset-top)", display: "flex", justifyContent: "space-between", alignItems: "center" },
   title: { fontSize: 26, fontWeight: 700, letterSpacing: -0.5, background: "linear-gradient(135deg, #6C9CFF, #B47AFF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
   card: { background: "rgba(255,255,255,0.04)", borderRadius: 16, padding: "18px 20px", margin: "12px 20px", border: "1px solid rgba(255,255,255,0.06)" },
   cardTitle: { fontSize: 13, color: "#777", fontWeight: 500, marginBottom: 8, letterSpacing: 0.3 },
